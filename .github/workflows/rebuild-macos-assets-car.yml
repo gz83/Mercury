@@ -53,7 +53,12 @@ jobs:
             exit 1
           fi
 
-          plutil -lint "$source_icon/icon.json"
+          command -v jq
+          jq -e '
+            (.groups | type == "array" and length == 2) and
+            ([.groups[].layers[]."image-name"] |
+              sort == ["background.svg", "beaker.svg"])
+          ' "$source_icon/icon.json" > /dev/null
           xcrun --find actool
           xcrun --sdk macosx --find assetutil
 
