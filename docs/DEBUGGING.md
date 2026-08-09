@@ -1,4 +1,4 @@
-# Debugging Mercury
+# Debugging Mercury <img src="assets/bug.svg" width="28">
 
 ## Command-line options
 

@@ -1,4 +1,4 @@
-# Building Mercury
+# Building Mercury <img src="assets/build_light.svg#gh-dark-mode-only"> <img src="assets/build_dark.svg#gh-light-mode-only">
 
 Mercury is built from a Firefox Git checkout plus the overlays and versioned
 patches in this repository. The scripts default to `$HOME/firefox` on Linux and

@@ -1,4 +1,6 @@
-# Mercury patch manifest
+<img src="../browser/branding/mercury/default256.png" width="144">
+
+# Mercury patch manifest <img src="assets/patches.png" width="32">
 
 ## Firefox 153.0.3 patch layout
 
