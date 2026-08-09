@@ -15,7 +15,6 @@ The versioned patches in `patches/firefox-153/` apply only to
 | `060-mercury-default-bookmarks.patch` | Mercury's default toolbar bookmarks on the Firefox 153 template |
 | `070-mercury-windows-installer.patch` | Windows installer branding, MSIX color, isolated reset marker, and disabled Mozilla uninstall survey |
 | `080-mercury-localization.patch` | Mercury-specific About dialog and network error wording |
-| `090-mercury-macos-legacy-icon.patch` | Force Mercury's legacy ICNS icon without Firefox's `Assets.car` or `AppIcon` asset reference |
 | `100-mercury-lto-tuning.patch` | Raise Clang's ThinLTO import instruction limit for Mercury performance builds |
 | `110-mercury-devtools-branding.patch` | Use Mercury branding for the local `about:debugging` runtime without replacing remote Firefox and Fenix channel icons |
 | `120-debian-package-identity.patch` | Allow Firefox's Debian repackager to keep Mercury's package name and installation path separate from its remoting identity |
@@ -42,11 +41,11 @@ Mercury-owned files remain as source overlays rather than patches:
   `.github/workflows/rebuild-macos-assets-car.yml` workflow compiles it with a
   pinned Xcode toolchain, validates the `AppIcon` catalog, and uploads the
   generated `Assets.car` and provenance sidecars without modifying the
-  repository. Patch `090` remains a temporary safety measure: it removes
-  `CFBundleIconName` and keeps packaging on the checked-in `firefox.icns` until
-  the generated catalog has passed visual testing on macOS 26 and an older
-  supported macOS release. Firefox/Nightly `Assets.car` files must never be
-  copied into Mercury branding.
+  repository. The validated catalog is checked in beside `firefox.icns` and is
+  copied and packaged by Firefox 153's native macOS rules. `CFBundleIconName`
+  selects its `AppIcon` entry on current macOS releases, while `firefox.icns`
+  remains the legacy fallback. Firefox/Nightly `Assets.car` files must never
+  be copied into Mercury branding.
 - `other-licenses/7zstub/firefox/{7zSD.Win32.sfx,7zSD.ARM64.sfx,setup.ico}`:
   product-branded binary inputs for Firefox's full Windows installer. The two
   SFX executables are checked in because Firefox packaging also consumes

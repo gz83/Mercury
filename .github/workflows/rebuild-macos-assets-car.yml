@@ -101,8 +101,35 @@ jobs:
 
           xcrun --sdk macosx assetutil --info "$compile_dir/Assets.car" \
             > "$artifact_dir/assetutil-info.json"
-          jq -e 'any(.[]; .Name == "AppIcon")' \
+          jq -e '
+            ([.[] | select(
+              .Name == "AppIcon" and .AssetType == "IconImageStack"
+            ) | .Appearance] | sort) == [
+              "ISAppearanceTintable",
+              "NSAppearanceNameAqua",
+              "NSAppearanceNameDarkAqua"
+            ] and
+            ([.[] | select(
+              .Name == "AppIcon" and .AssetType == "Icon Image"
+            ) | .PixelWidth] | unique | sort) == [
+              32, 64, 128, 256, 512, 1024
+            ] and
+            any(.[];
+              .Name == "AppIcon" and .AssetType == "MultiSized Image"
+            ) and
+            any(.[];
+              .Name == "AppIcon_Assets/background" and .AssetType == "Vector"
+            ) and
+            any(.[];
+              .Name == "AppIcon_Assets/beaker" and .AssetType == "Vector"
+            )
+          ' \
             "$artifact_dir/assetutil-info.json" > /dev/null
+
+          plutil -extract CFBundleIconFile raw \
+            "$compile_dir/partial-info.plist" | grep -Fx AppIcon
+          plutil -extract CFBundleIconName raw \
+            "$compile_dir/partial-info.plist" | grep -Fx AppIcon
 
           cp "$compile_dir/Assets.car" "$artifact_dir/Assets.car"
           cp "$compile_dir/partial-info.plist" "$artifact_dir/partial-info.plist"
