@@ -1,30 +1,29 @@
 {
-  "color-space-for-untagged-svg-colors": "srgb",
+  "fill": {
+    "solid": "srgb:0.00000,0.00000,0.00000,0.00000"
+  },
   "groups": [
     {
+      "blur-material": 0.5,
       "layers": [
         {
-          "hidden": false,
           "image-name": "background.svg",
-          "name": "Background",
-          "opacity": 1
-        }
-      ],
-      "lighting": "combined",
-      "name": "Background"
-    },
-    {
-      "layers": [
+          "name": "Background"
+        },
         {
-          "glass": true,
-          "hidden": false,
           "image-name": "beaker.svg",
-          "name": "Beaker",
-          "opacity": 1
+          "name": "Beaker"
         }
       ],
-      "lighting": "individual",
-      "name": "Beaker"
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": true,
+        "value": 0.5
+      }
     }
   ],
   "supported-platforms": {

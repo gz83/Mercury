@@ -55,7 +55,7 @@ jobs:
 
           command -v jq
           jq -e '
-            (.groups | type == "array" and length == 2) and
+            (.groups | type == "array" and length == 1) and
             ([.groups[].layers[]."image-name"] |
               sort == ["background.svg", "beaker.svg"])
           ' "$source_icon/icon.json" > /dev/null
