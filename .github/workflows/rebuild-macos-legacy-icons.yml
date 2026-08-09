@@ -1,0 +1,208 @@
+name: Rebuild Mercury macOS legacy icons
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: rebuild-macos-legacy-icons-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+jobs:
+  rebuild:
+    name: Compile and verify Mercury ICNS resources
+    runs-on: macos-26
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out Mercury
+        uses: actions/checkout@v6
+        with:
+          path: mercury
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify the pinned toolchain and iconsets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_root="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos"
+          expected_xcode='Xcode 26.6'
+
+          test -d "$DEVELOPER_DIR"
+          command -v iconutil
+          command -v sips
+
+          xcode_version_output="$(xcodebuild -version)"
+          actual_xcode="${xcode_version_output%%$'\n'*}"
+          printf '%s\n' "$xcode_version_output"
+          if [[ "$actual_xcode" != "$expected_xcode" ]]; then
+            echo "Expected $expected_xcode, found $actual_xcode." >&2
+            exit 1
+          fi
+
+          validate_iconset() {
+            local iconset="$1"
+            test -d "$iconset"
+            while read -r filename width height; do
+              file="$iconset/$filename"
+              test -s "$file"
+              test "$(sips -g pixelWidth "$file" | awk '/pixelWidth:/ {print $2}')" = "$width"
+              test "$(sips -g pixelHeight "$file" | awk '/pixelHeight:/ {print $2}')" = "$height"
+            done <<'EOF'
+          icon_16x16.png 16 16
+          icon_16x16@2x.png 32 32
+          icon_32x32.png 32 32
+          icon_32x32@2x.png 64 64
+          icon_128x128.png 128 128
+          icon_128x128@2x.png 256 256
+          icon_256x256.png 256 256
+          icon_256x256@2x.png 512 512
+          icon_512x512.png 512 512
+          icon_512x512@2x.png 1024 1024
+          EOF
+          }
+
+          for iconset_name in \
+            LegacyAppIcon.iconset \
+            DocumentIcon.iconset \
+            DiskIcon.iconset; do
+            validate_iconset "$source_root/$iconset_name"
+          done
+
+      - name: Compile and round-trip the ICNS resources
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_root="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos"
+          build_dir="$RUNNER_TEMP/mercury-legacy-icons"
+          mkdir -p "$build_dir"
+
+          validate_iconset() {
+            local iconset="$1"
+            while read -r filename width height; do
+              file="$iconset/$filename"
+              test -s "$file"
+              test "$(sips -g pixelWidth "$file" | awk '/pixelWidth:/ {print $2}')" = "$width"
+              test "$(sips -g pixelHeight "$file" | awk '/pixelHeight:/ {print $2}')" = "$height"
+            done <<'EOF'
+          icon_16x16.png 16 16
+          icon_16x16@2x.png 32 32
+          icon_32x32.png 32 32
+          icon_32x32@2x.png 64 64
+          icon_128x128.png 128 128
+          icon_128x128@2x.png 256 256
+          icon_256x256.png 256 256
+          icon_256x256@2x.png 512 512
+          icon_512x512.png 512 512
+          icon_512x512@2x.png 1024 1024
+          EOF
+          }
+
+          for spec in \
+            'LegacyAppIcon.iconset:firefox.icns' \
+            'DocumentIcon.iconset:document.icns' \
+            'DiskIcon.iconset:disk.icns'; do
+            iconset_name="${spec%%:*}"
+            output_name="${spec#*:}"
+            output_stem="${output_name%.icns}"
+            iconutil --convert icns --output "$build_dir/$output_name" \
+              "$source_root/$iconset_name"
+            test -s "$build_dir/$output_name"
+            iconutil --convert iconset \
+              --output "$build_dir/roundtrip-$output_stem.iconset" \
+              "$build_dir/$output_name"
+            validate_iconset "$build_dir/roundtrip-$output_stem.iconset"
+          done
+
+      - name: Stage the generated icons and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_root="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos"
+          build_dir="$RUNNER_TEMP/mercury-legacy-icons"
+          artifact_dir="$GITHUB_WORKSPACE/macos-legacy-icons-artifact"
+          mkdir -p "$artifact_dir"
+
+          cp "$build_dir/firefox.icns" "$artifact_dir/firefox.icns"
+          cp "$build_dir/document.icns" "$artifact_dir/document.icns"
+          cp "$build_dir/disk.icns" "$artifact_dir/disk.icns"
+          (
+            cd "$source_root"
+            while IFS= read -r source_file; do
+              shasum -a 256 "$source_file"
+            done < <(find \
+              LegacyAppIcon.iconset \
+              DocumentIcon.iconset \
+              DiskIcon.iconset \
+              -type f | LC_ALL=C sort)
+          ) > "$artifact_dir/SOURCE-SHA256SUMS.txt"
+
+          firefox_hash="$(shasum -a 256 "$artifact_dir/firefox.icns" | awk '{print $1}')"
+          document_hash="$(shasum -a 256 "$artifact_dir/document.icns" | awk '{print $1}')"
+          disk_hash="$(shasum -a 256 "$artifact_dir/disk.icns" | awk '{print $1}')"
+          source_manifest_hash="$(shasum -a 256 "$artifact_dir/SOURCE-SHA256SUMS.txt" | awk '{print $1}')"
+          xcode_version="$(xcodebuild -version)"
+          xcode_version="${xcode_version//$'\n'/ }"
+          sdk_version="$(xcrun --sdk macosx --show-sdk-version)"
+          built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          printf '%s  %s\n' \
+            "$firefox_hash" firefox.icns \
+            "$document_hash" document.icns \
+            "$disk_hash" disk.icns \
+            > "$artifact_dir/SHA256SUMS.txt"
+
+          jq -n \
+            --arg mercuryCommit "$GITHUB_SHA" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg runnerImage "${ImageOS:-unknown}" \
+            --arg runnerImageVersion "${ImageVersion:-unknown}" \
+            --arg xcodeVersion "$xcode_version" \
+            --arg macosSdkVersion "$sdk_version" \
+            --arg builtAtUtc "$built_at" \
+            --arg sourceManifestSha256 "$source_manifest_hash" \
+            --arg firefoxIcnsSha256 "$firefox_hash" \
+            --arg documentIcnsSha256 "$document_hash" \
+            --arg diskIcnsSha256 "$disk_hash" \
+            '{
+              schemaVersion: 1,
+              mercuryCommit: $mercuryCommit,
+              workflowRun: $workflowRun,
+              runnerImage: $runnerImage,
+              runnerImageVersion: $runnerImageVersion,
+              xcodeVersion: $xcodeVersion,
+              macosSdkVersion: $macosSdkVersion,
+              builtAtUtc: $builtAtUtc,
+              sourceManifestSha256: $sourceManifestSha256,
+              artifacts: [
+                { name: "firefox.icns", sha256: $firefoxIcnsSha256 },
+                { name: "document.icns", sha256: $documentIcnsSha256 },
+                { name: "disk.icns", sha256: $diskIcnsSha256 }
+              ]
+            }' > "$artifact_dir/BUILDINFO.json"
+
+      - name: Upload generated icons
+        uses: actions/upload-artifact@v7
+        with:
+          name: mercury-macos-legacy-icons-${{ github.run_id }}
+          path: macos-legacy-icons-artifact/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: macos-legacy-icons-artifact/*.icns

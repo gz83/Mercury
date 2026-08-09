@@ -49,12 +49,14 @@ Mercury-owned files remain as source overlays rather than patches:
   copied and packaged by Firefox 153's native macOS rules. `CFBundleIconName`
   selects its `AppIcon` entry on current macOS releases, while `firefox.icns`
   remains the legacy fallback. Firefox/Nightly `Assets.car` files must never
-  be copied into Mercury branding. The DMG volume icon's ten standard PNG
-  sources live in `browser/branding/mercury/macos/DiskIcon.iconset`; the
-  manually dispatched `.github/workflows/rebuild-macos-disk-icon.yml` workflow
-  compiles and round-trip-validates `disk.icns` with Apple's `iconutil`, then
-  uploads it and its provenance files as artifacts without changing the
-  repository.
+  be copied into Mercury branding. Standard ten-rendition sources for the
+  legacy application, document-association, and DMG volume icons live in
+  `browser/branding/mercury/macos/{LegacyAppIcon,DocumentIcon,DiskIcon}.iconset`.
+  The manually dispatched
+  `.github/workflows/rebuild-macos-legacy-icons.yml` workflow compiles and
+  round-trip-validates `firefox.icns`, `document.icns`, and `disk.icns` with
+  Apple's `iconutil`, then uploads them and their provenance files as artifacts
+  without changing the repository.
 - `other-licenses/7zstub/firefox/{7zSD.Win32.sfx,7zSD.ARM64.sfx,setup.ico}`:
   product-branded binary inputs for Firefox's full Windows installer. The two
   SFX executables are checked in because Firefox packaging also consumes
