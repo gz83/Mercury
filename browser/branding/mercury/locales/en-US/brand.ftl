@@ -2,9 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-## Firefox and Mozilla Brand
+## Mercury Brand
 ##
-## Firefox and Mozilla must be treated as a brand.
+## Mercury must be treated as a brand.
 ##
 ## They cannot be:
 ## - Transliterated.
@@ -13,15 +13,12 @@
 ## Declension should be avoided where possible, leaving the original
 ## brand unaltered in prominent UI positions.
 ##
-## For further details, consult:
-## https://mozilla-l10n.github.io/styleguides/mozilla_general/#brands-copyright-and-trademark
-
 -brand-shorter-name = Mercury
 -brand-short-name = Mercury
 -brand-shortcut-name = Mercury
 -brand-full-name = Mercury
-# This brand name can be used in messages where the product name needs to
-# remain unchanged across different versions (Nightly, Beta, etc.).
+# This brand name can be used in messages where the product name must remain
+# unchanged across different release variants.
 -brand-product-name = Mercury
 -vendor-short-name = Alex313031
 trademarkInfo = { "Mercury logos are copyrights of Alex313031." }

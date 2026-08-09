@@ -16,7 +16,7 @@
 !define HelpLink              "https://github.com/Alex313031/Mercury/issues"
 
 !define URLManualDownload "https://github.com/Alex313031/Mercury/releases"
-!define URLSystemRequirements "https://github.com/Alex313031/Mercury/blob/main/docs/DEPS.md"
+!define URLSystemRequirements "https://github.com/Alex313031/Mercury/blob/main/docs/SYSTEM_REQUIREMENTS.md"
 !define Channel "release"
 
 # Mercury releases multiple CPU-specific Windows installers and does not

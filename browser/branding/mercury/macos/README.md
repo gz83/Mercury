@@ -33,3 +33,12 @@ replace `../Assets.car` with the validated workflow artifact, and update the
 provenance and SHA-256 above at the same time. Before publishing a replacement,
 visually verify its default, dark, and tinted appearances on macOS 26, plus the
 legacy `firefox.icns` fallback on an older supported macOS release.
+
+`DiskIcon.iconset` is the editable source for the mounted installer-volume icon
+checked in as `../disk.icns`. It contains all ten standard 1x and 2x PNG
+renditions from 16 through 1024 pixels. Run the manually dispatched
+`rebuild-macos-disk-icon.yml` workflow after changing them. The workflow uses
+Apple's `iconutil`, unpacks the result again to verify every rendition, and
+uploads `disk.icns` plus hashes and provenance as an artifact; it never modifies
+the repository. Replace `../disk.icns` only with that validated artifact and
+visually inspect a mounted Mercury DMG in Finder before release.

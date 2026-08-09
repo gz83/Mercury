@@ -1,0 +1,169 @@
+name: Rebuild Mercury macOS disk icon
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: rebuild-macos-disk-icon-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+jobs:
+  rebuild:
+    name: Compile and verify the Mercury DMG volume icon
+    runs-on: macos-26
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out Mercury
+        uses: actions/checkout@v6
+        with:
+          path: mercury
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify the pinned toolchain and iconset
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          iconset="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos/DiskIcon.iconset"
+          expected_xcode='Xcode 26.6'
+
+          test -d "$DEVELOPER_DIR"
+          test -d "$iconset"
+          command -v iconutil
+          command -v sips
+
+          xcode_version_output="$(xcodebuild -version)"
+          actual_xcode="${xcode_version_output%%$'\n'*}"
+          printf '%s\n' "$xcode_version_output"
+          if [[ "$actual_xcode" != "$expected_xcode" ]]; then
+            echo "Expected $expected_xcode, found $actual_xcode." >&2
+            exit 1
+          fi
+
+          while read -r filename width height; do
+            file="$iconset/$filename"
+            test -s "$file"
+            test "$(sips -g pixelWidth "$file" | awk '/pixelWidth:/ {print $2}')" = "$width"
+            test "$(sips -g pixelHeight "$file" | awk '/pixelHeight:/ {print $2}')" = "$height"
+          done <<'EOF'
+          icon_16x16.png 16 16
+          icon_16x16@2x.png 32 32
+          icon_32x32.png 32 32
+          icon_32x32@2x.png 64 64
+          icon_128x128.png 128 128
+          icon_128x128@2x.png 256 256
+          icon_256x256.png 256 256
+          icon_256x256@2x.png 512 512
+          icon_512x512.png 512 512
+          icon_512x512@2x.png 1024 1024
+          EOF
+
+      - name: Compile and round-trip the ICNS
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          iconset="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos/DiskIcon.iconset"
+          build_dir="$RUNNER_TEMP/mercury-disk-icon"
+          mkdir -p "$build_dir"
+
+          iconutil --convert icns --output "$build_dir/disk.icns" "$iconset"
+          test -s "$build_dir/disk.icns"
+          iconutil --convert iconset --output "$build_dir/roundtrip.iconset" \
+            "$build_dir/disk.icns"
+
+          while read -r filename width height; do
+            file="$build_dir/roundtrip.iconset/$filename"
+            test -s "$file"
+            test "$(sips -g pixelWidth "$file" | awk '/pixelWidth:/ {print $2}')" = "$width"
+            test "$(sips -g pixelHeight "$file" | awk '/pixelHeight:/ {print $2}')" = "$height"
+          done <<'EOF'
+          icon_16x16.png 16 16
+          icon_16x16@2x.png 32 32
+          icon_32x32.png 32 32
+          icon_32x32@2x.png 64 64
+          icon_128x128.png 128 128
+          icon_128x128@2x.png 256 256
+          icon_256x256.png 256 256
+          icon_256x256@2x.png 512 512
+          icon_512x512.png 512 512
+          icon_512x512@2x.png 1024 1024
+          EOF
+
+      - name: Stage the generated icon and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_root="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos"
+          build_dir="$RUNNER_TEMP/mercury-disk-icon"
+          artifact_dir="$GITHUB_WORKSPACE/macos-disk-icon-artifact"
+          mkdir -p "$artifact_dir"
+
+          cp "$build_dir/disk.icns" "$artifact_dir/disk.icns"
+          (
+            cd "$source_root"
+            while IFS= read -r source_file; do
+              shasum -a 256 "$source_file"
+            done < <(find DiskIcon.iconset -type f | LC_ALL=C sort)
+          ) > "$artifact_dir/SOURCE-SHA256SUMS.txt"
+
+          icon_hash="$(shasum -a 256 "$artifact_dir/disk.icns" | awk '{print $1}')"
+          source_manifest_hash="$(shasum -a 256 "$artifact_dir/SOURCE-SHA256SUMS.txt" | awk '{print $1}')"
+          xcode_version="$(xcodebuild -version)"
+          xcode_version="${xcode_version//$'\n'/ }"
+          sdk_version="$(xcrun --sdk macosx --show-sdk-version)"
+          built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          printf '%s  %s\n' "$icon_hash" disk.icns > "$artifact_dir/SHA256SUMS.txt"
+
+          jq -n \
+            --arg mercuryCommit "$GITHUB_SHA" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg runnerImage "${ImageOS:-unknown}" \
+            --arg runnerImageVersion "${ImageVersion:-unknown}" \
+            --arg xcodeVersion "$xcode_version" \
+            --arg macosSdkVersion "$sdk_version" \
+            --arg builtAtUtc "$built_at" \
+            --arg sourceManifestSha256 "$source_manifest_hash" \
+            --arg diskIcnsSha256 "$icon_hash" \
+            '{
+              schemaVersion: 1,
+              mercuryCommit: $mercuryCommit,
+              workflowRun: $workflowRun,
+              runnerImage: $runnerImage,
+              runnerImageVersion: $runnerImageVersion,
+              xcodeVersion: $xcodeVersion,
+              macosSdkVersion: $macosSdkVersion,
+              builtAtUtc: $builtAtUtc,
+              sourceManifestSha256: $sourceManifestSha256,
+              artifact: {
+                name: "disk.icns",
+                sha256: $diskIcnsSha256
+              }
+            }' > "$artifact_dir/BUILDINFO.json"
+
+      - name: Upload generated icon
+        uses: actions/upload-artifact@v7
+        with:
+          name: mercury-macos-disk-icon-${{ github.run_id }}
+          path: macos-disk-icon-artifact/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: macos-disk-icon-artifact/disk.icns
