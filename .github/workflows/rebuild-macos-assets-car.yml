@@ -1,0 +1,154 @@
+name: Rebuild Mercury macOS Assets.car
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: rebuild-macos-assets-car-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+  MACOS_DEPLOYMENT_TARGET: "10.15"
+
+jobs:
+  rebuild:
+    name: Compile and verify the Mercury AppIcon catalog
+    runs-on: macos-26
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out Mercury
+        uses: actions/checkout@v6
+        with:
+          path: mercury
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify the pinned Apple toolchain and icon sources
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_icon="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos/AppIcon.icon"
+          expected_xcode='Xcode 26.6'
+
+          test -d "$DEVELOPER_DIR"
+          test -d "$source_icon/Assets"
+          test -f "$source_icon/icon.json"
+          test -f "$source_icon/Assets/background.svg"
+          test -f "$source_icon/Assets/beaker.svg"
+
+          actual_xcode="$(xcodebuild -version | head -n 1)"
+          if [[ "$actual_xcode" != "$expected_xcode" ]]; then
+            echo "Expected $expected_xcode, found $actual_xcode." >&2
+            exit 1
+          fi
+
+          plutil -lint "$source_icon/icon.json"
+          xcrun --find actool
+          xcrun --sdk macosx --find assetutil
+
+      - name: Compile Assets.car
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_icon="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos/AppIcon.icon"
+          compile_dir="$RUNNER_TEMP/mercury-asset-catalog"
+          mkdir -p "$compile_dir"
+
+          xcrun actool "$source_icon" \
+            --compile "$compile_dir" \
+            --output-format human-readable-text \
+            --notices \
+            --warnings \
+            --app-icon AppIcon \
+            --platform macosx \
+            --minimum-deployment-target "$MACOS_DEPLOYMENT_TARGET" \
+            --output-partial-info-plist "$compile_dir/partial-info.plist"
+
+          test -s "$compile_dir/Assets.car"
+          test -s "$compile_dir/partial-info.plist"
+
+      - name: Verify and stage the generated catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_root="$GITHUB_WORKSPACE/mercury/browser/branding/mercury/macos"
+          compile_dir="$RUNNER_TEMP/mercury-asset-catalog"
+          artifact_dir="$GITHUB_WORKSPACE/macos-assets-car-artifact"
+          mkdir -p "$artifact_dir"
+
+          xcrun --sdk macosx assetutil --info "$compile_dir/Assets.car" \
+            > "$artifact_dir/assetutil-info.json"
+          jq -e 'any(.[]; .Name == "AppIcon")' \
+            "$artifact_dir/assetutil-info.json" > /dev/null
+
+          cp "$compile_dir/Assets.car" "$artifact_dir/Assets.car"
+          cp "$compile_dir/partial-info.plist" "$artifact_dir/partial-info.plist"
+
+          (
+            cd "$source_root"
+            while IFS= read -r source_file; do
+              shasum -a 256 "$source_file"
+            done < <(find AppIcon.icon -type f | LC_ALL=C sort)
+          ) > "$artifact_dir/SOURCE-SHA256SUMS.txt"
+
+          asset_hash="$(shasum -a 256 "$artifact_dir/Assets.car" | awk '{print $1}')"
+          source_manifest_hash="$(shasum -a 256 "$artifact_dir/SOURCE-SHA256SUMS.txt" | awk '{print $1}')"
+          xcode_version="$(xcodebuild -version | paste -sd ' ' -)"
+          sdk_version="$(xcrun --sdk macosx --show-sdk-version)"
+          built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          printf '%s  %s\n' "$asset_hash" Assets.car \
+            > "$artifact_dir/SHA256SUMS.txt"
+
+          jq -n \
+            --arg mercuryCommit "$GITHUB_SHA" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg runnerImage "${ImageOS:-unknown}" \
+            --arg runnerImageVersion "${ImageVersion:-unknown}" \
+            --arg xcodeVersion "$xcode_version" \
+            --arg macosSdkVersion "$sdk_version" \
+            --arg deploymentTarget "$MACOS_DEPLOYMENT_TARGET" \
+            --arg builtAtUtc "$built_at" \
+            --arg sourceManifestSha256 "$source_manifest_hash" \
+            --arg assetsCarSha256 "$asset_hash" \
+            '{
+              schemaVersion: 1,
+              mercuryCommit: $mercuryCommit,
+              workflowRun: $workflowRun,
+              runnerImage: $runnerImage,
+              runnerImageVersion: $runnerImageVersion,
+              xcodeVersion: $xcodeVersion,
+              macosSdkVersion: $macosSdkVersion,
+              deploymentTarget: $deploymentTarget,
+              builtAtUtc: $builtAtUtc,
+              sourceManifestSha256: $sourceManifestSha256,
+              artifact: {
+                name: "Assets.car",
+                sha256: $assetsCarSha256
+              }
+            }' > "$artifact_dir/BUILDINFO.json"
+
+      - name: Upload generated catalog
+        uses: actions/upload-artifact@v7
+        with:
+          name: mercury-macos-assets-car-${{ github.run_id }}
+          path: macos-assets-car-artifact/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: macos-assets-car-artifact/Assets.car

@@ -10,3 +10,6 @@
 # Prebuilt Windows installer inputs must never be line-ending normalized.
 *.sfx binary
 *.ico binary
+
+# Apple asset catalogs are opaque compiler output.
+*.car binary

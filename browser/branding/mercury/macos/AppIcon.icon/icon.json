@@ -1,0 +1,35 @@
+{
+  "color-space-for-untagged-svg-colors": "srgb",
+  "groups": [
+    {
+      "layers": [
+        {
+          "hidden": false,
+          "image-name": "background.svg",
+          "name": "Background",
+          "opacity": 1
+        }
+      ],
+      "lighting": "combined",
+      "name": "Background"
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "hidden": false,
+          "image-name": "beaker.svg",
+          "name": "Beaker",
+          "opacity": 1
+        }
+      ],
+      "lighting": "individual",
+      "name": "Beaker"
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "macOS"
+    ]
+  }
+}

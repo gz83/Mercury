@@ -37,10 +37,16 @@ Mercury-owned files remain as source overlays rather than patches:
 - `app/distribution/policies.json`: independently maintained product policy.
 - `browser/branding/mercury/`: independently maintained Mercury artwork and
   branding resources, rebased on Firefox 153's `unofficial` branding layout.
-  The upstream `Assets.car` is deliberately omitted because it contains
-  Firefox/Nightly artwork and cannot be regenerated without Apple's `actool`;
-  patch `090` removes `CFBundleIconName` and keeps macOS packaging explicitly
-  on Mercury's `firefox.icns` fallback.
+  Mercury's two-layer Icon Composer source is maintained under
+  `browser/branding/mercury/macos/AppIcon.icon`. The manually dispatched
+  `.github/workflows/rebuild-macos-assets-car.yml` workflow compiles it with a
+  pinned Xcode toolchain, validates the `AppIcon` catalog, and uploads the
+  generated `Assets.car` and provenance sidecars without modifying the
+  repository. Patch `090` remains a temporary safety measure: it removes
+  `CFBundleIconName` and keeps packaging on the checked-in `firefox.icns` until
+  the generated catalog has passed visual testing on macOS 26 and an older
+  supported macOS release. Firefox/Nightly `Assets.car` files must never be
+  copied into Mercury branding.
 - `other-licenses/7zstub/firefox/{7zSD.Win32.sfx,7zSD.ARM64.sfx,setup.ico}`:
   product-branded binary inputs for Firefox's full Windows installer. The two
   SFX executables are checked in because Firefox packaging also consumes
