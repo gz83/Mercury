@@ -1,0 +1,12 @@
+# Git binary patches must retain LF line endings on Windows.
+*.patch text eol=lf
+*.diff text eol=lf
+
+# Keep build and workflow scripts consistent across build hosts.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Prebuilt Windows installer inputs must never be line-ending normalized.
+*.sfx binary
+*.ico binary

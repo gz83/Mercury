@@ -54,6 +54,10 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or $actualCommit -ne $env:FIREFOX_COMMIT) {
             throw "Firefox checkout is $actualCommit; expected $env:FIREFOX_COMMIT."
           }
+          $patchBytes = [System.IO.File]::ReadAllBytes($patch)
+          if ($patchBytes -contains 0x0d) {
+            throw 'The SFX binary patch contains CR bytes. Ensure *.patch is checked out with eol=lf.'
+          }
           git -C $firefox apply --check $patch
           if ($LASTEXITCODE -ne 0) { throw 'The Mercury SFX patch does not apply to the pinned Firefox source.' }
           git -C $firefox apply $patch
