@@ -76,8 +76,13 @@ jobs:
             --output-format human-readable-text \
             --notices \
             --warnings \
+            --errors \
             --app-icon AppIcon \
+            --include-all-app-icons \
+            --enable-on-demand-resources NO \
+            --development-region en \
             --platform macosx \
+            --target-device mac \
             --minimum-deployment-target "$MACOS_DEPLOYMENT_TARGET" \
             --output-partial-info-plist "$compile_dir/partial-info.plist"
 
