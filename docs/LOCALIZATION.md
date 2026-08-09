@@ -119,6 +119,37 @@ given Mercury version can be shared by its SSE3, SSE4.1, AVX, and AVX2 builds.
 Before release, still test installation, locale switching, and restart behavior
 on every target operating system.
 
+To publish an optional architecture-independent Debian language-pack package,
+run Firefox's native repackager after `setup.sh` has applied patch `120`. Use an
+XPI produced above and any Mercury Linux base archive of the same version:
+
+```bash
+cd "$MOZ_SRC_DIR"
+./mach repackage deb-l10n \
+  --input-xpi-file /path/to/target.langpack.xpi \
+  --input-tar-file /path/to/mercury-153.0.3.en-US.linux-x86_64.tar.xz \
+  --output /path/to/mercury-browser-l10n-zh-cn.deb \
+  --version 153.0.3 \
+  --build-number 1 \
+  --templates /chromium-source/Mercury/packaging/debian-langpack \
+  --product mercury \
+  --package-name mercury-browser \
+  --install-path usr/lib/mercury \
+  --extensions-dir mercury/distribution/extensions
+```
+
+The XPI manifest determines the locale suffix, so use the same command for
+`zh-TW` with its XPI and output filename. The resulting package is named
+`mercury-browser-l10n-<locale>` and depends on the exact matching
+`mercury-browser` Debian version.
+
+Keep `L10NBASEDIR` pointed at the prepared Mercury localization workspace when
+running `make_deb.sh`. Patch `120` makes Firefox's localized desktop-file
+generator use that workspace, including Mercury's `zh-CN` and `zh-TW`
+temporary-profile action labels. When `L10NBASEDIR` is unset, the repackager
+retains Firefox's normal behavior and fetches the pinned upstream localization
+revision; Mercury-only messages then fall back to `en-US`.
+
 ## Optional workflows
 
 To compile a complete build directly in one locale, temporarily add

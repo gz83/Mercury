@@ -30,8 +30,8 @@ audited product defaults and their owners are documented in
 
 ## Resources
 
-- [Firefox logging](https://firefox-source-docs.mozilla.org/mach/logging.html)
-- [Command-line options](https://wiki.mozilla.org/Firefox/CommandLineOptions)
+- [Gecko logging](https://firefox-source-docs.mozilla.org/xpcom/logging.html)
+- [Command-line options](https://firefox-source-docs.mozilla.org/browser/CommandLineParameters.html)
 - [Browser Console](https://firefox-source-docs.mozilla.org/devtools-user/browser_console/index.html)
 - [Browser Toolbox](https://firefox-source-docs.mozilla.org/devtools-user/browser_toolbox/index.html)
 - [DevTools](https://firefox-source-docs.mozilla.org/devtools-user/index.html)

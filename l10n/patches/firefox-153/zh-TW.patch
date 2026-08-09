@@ -17,7 +17,7 @@ index a025db102ee6..4d3975843ab2 100644
 +++ b/zh-TW/browser/chrome/overrides/appstrings.properties
 @@ -3,30 +3,30 @@
  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
- 
+
  malformedURI2 = 請檢查 URL 是否正確，然後再試一次。
 -fileNotFound = Firefox 找不到檔案 %S。
 +fileNotFound = Mercury 找不到檔案 %S。
@@ -68,3 +68,13 @@ index a025db102ee6..4d3975843ab2 100644
  invalidHeaderValue = %S 送回了網頁安全標準不允許的含有空白字元的檔頭。
 -networkProtocolError = Firefox 遇到了違反通訊協定的情況，無法修復。
 +networkProtocolError = Mercury 遇到了違反通訊協定的情況，無法修復。
+diff --git a/zh-TW/browser/browser/linuxDesktopEntry.ftl b/zh-TW/browser/browser/linuxDesktopEntry.ftl
+--- a/zh-TW/browser/browser/linuxDesktopEntry.ftl
++++ b/zh-TW/browser/browser/linuxDesktopEntry.ftl
+@@ -27,5 +27,6 @@ desktop-entry-keywords = 網際網路;網路;瀏覽器;網頁;上網;Internet;WWW;Browser;Web;Explorer;
+ ## taskbar icon, possibly other places depending on the environment.
+
+ desktop-action-new-window-name = 開新視窗
+ desktop-action-new-private-window-name = 開新隱私視窗
+ desktop-action-open-profile-manager = 開啟設定檔管理員
++desktop-action-open-temp-profile = 使用暫時使用者設定檔開啟

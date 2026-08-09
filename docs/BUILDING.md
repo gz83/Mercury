@@ -82,8 +82,25 @@ Debian tooling:
 ```
 
 `make_deb.sh` also accepts an explicit `.tar.xz`, `.tar.bz2`, or `.tar.gz`
-archive. Set `DEB_ARCH` to `amd64`, `i386`, or `arm64` when the archive's target
-does not match the packaging host.
+archive. It reads the packaged Mercury ELF header to select `amd64`, `i386`, or
+`arm64`, including for cross-built archives. `DEB_ARCH` can assert an expected
+target, but a value that disagrees with the archive is rejected.
+
+To create a portable package, wrap an existing native package instead of
+changing Firefox's platform packager:
+
+```bash
+./make_portable.sh /path/to/mercury-linux.tar.xz
+./make_portable.sh /path/to/mercury-windows.zip
+```
+
+Linux TAR inputs produce a `.portable.tar.xz`; Windows ZIP inputs produce a
+`.portable.zip`. Both retain Firefox's `mercury/` application directory and add
+a launcher beside it. The launcher creates `USER_DATA/` beside the application
+and passes that directory through Firefox's supported `--profile` option. It
+resolves paths relative to itself, so the package works when invoked from a
+different working directory. Additional browser arguments are forwarded.
+Portable packaging is not used for DMG, installer, or Debian outputs.
 
 Windows builds produce the full installer. Mercury does not enable
 `MOZ_STUB_INSTALLER`, because its CPU-specific releases do not provide the

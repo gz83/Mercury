@@ -5,6 +5,8 @@
 
 """Check whether this machine can run a Mercury x86 build profile."""
 
+from __future__ import annotations
+
 import argparse
 import ctypes
 import mmap

@@ -6,6 +6,7 @@
 *.sh text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.bat text eol=crlf
 
 # Prebuilt Windows installer inputs must never be line-ending normalized.
 *.sfx binary

@@ -2,29 +2,24 @@
 
 # Copyright (c) 2024 Alex313031.
 
-YEL='\033[1;33m' # Yellow
-CYA='\033[1;96m' # Cyan
-RED='\033[1;31m' # Red
-GRE='\033[1;32m' # Green
-c0='\033[0m' # Reset Text
-bold='\033[1m' # Bold Text
-underline='\033[4m' # Underline Text
+set -euo pipefail
 
-# Error handling
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "${RED}Failed $*"; }
+display_help() {
+	cat <<'EOF'
+Package Mercury with Firefox's native platform packaging workflow.
 
-# --help
-displayHelp () {
-	printf "\n" &&
-	printf "${bold}${GRE}Script to package Mercury Browser.${c0}\n" &&
-	printf "${underline}${YEL}Usage:${c0} package.sh\n" &&
-	printf "You can also run ${CYA}export MOZ_MAKE_FLAGS=\"-j#\"${c0} where # is the number of jobs.\n" &&
-	printf "\n"
+Usage: ./package.sh
+
+Firefox selects the output for the configured target: an XZ archive on Linux,
+a DMG on macOS, or a ZIP and full installer on Windows. `mach package` prints
+the exact output path. Set MOZ_MAKE_FLAGS to control make parallelism.
+EOF
 }
-case $1 in
-	--help) displayHelp; exit 0;;
+
+case "${1:-}" in
+	-h|--help) display_help; exit 0 ;;
+	"") ;;
+	*) echo "Unknown option: $1" >&2; display_help >&2; exit 2 ;;
 esac
 
 # Firefox source directory
@@ -35,14 +30,11 @@ esac
 MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
 export MOZ_SRC_DIR
 
-printf "\n" &&
-printf "${YEL}Packaging Mercury..\n" &&
-printf "${GRE}\n" &&
+if [[ ! -x "$MOZ_SRC_DIR/mach" || ! -d "$MOZ_SRC_DIR/.git" ]]; then
+	echo "Firefox checkout not found at $MOZ_SRC_DIR. Run ./bootstrap.sh and ./setup.sh first." >&2
+	exit 1
+fi
 
-cd "${MOZ_SRC_DIR}" &&
-
-./mach package -v &&
-
-printf "${GRE}${bold}Done. ${YEL}${bold}You can find a tarball package of the release in:\n" &&
-printf "${PWD}/obj.../dist/mercury....tar.xz\n" &&
-tput sgr0
+printf 'Packaging Mercury with Firefox mach...\n'
+cd "$MOZ_SRC_DIR"
+./mach package --verbose

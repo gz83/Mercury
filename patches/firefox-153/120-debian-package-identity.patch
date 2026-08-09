@@ -1,7 +1,17 @@
+diff --git a/browser/locales/en-US/browser/linuxDesktopEntry.ftl b/browser/locales/en-US/browser/linuxDesktopEntry.ftl
+index 9c70c34..0416cd1 100644
+--- a/browser/locales/en-US/browser/linuxDesktopEntry.ftl
++++ b/browser/locales/en-US/browser/linuxDesktopEntry.ftl
+@@ -24,3 +24,4 @@ desktop-entry-keywords = Internet;WWW;Browser;Web;Explorer;
+ desktop-action-new-window-name = New Window
+ desktop-action-new-private-window-name = New Private Window
+ desktop-action-open-profile-manager = Open Profile Manager
++desktop-action-open-temp-profile = Open With Temporary User Profile
 diff --git a/python/mozbuild/mozbuild/mach_commands.py b/python/mozbuild/mozbuild/mach_commands.py
+index c7b0d3d..d21a21c 100644
 --- a/python/mozbuild/mozbuild/mach_commands.py
 +++ b/python/mozbuild/mozbuild/mach_commands.py
-@@ -2863,6 +2863,18 @@
+@@ -2863,6 +2863,18 @@ def repackage(command_context):
      required=True,
      help="The release being shipped. Used to disambiguate nightly/try etc.",
  )
@@ -20,7 +30,7 @@ diff --git a/python/mozbuild/mozbuild/mach_commands.py b/python/mozbuild/mozbuil
  def repackage_deb(
      command_context,
      input,
-@@ -2875,6 +2887,8 @@
+@@ -2873,6 +2885,8 @@ def repackage_deb(
      templates,
      product,
      release_type,
@@ -29,19 +39,57 @@ diff --git a/python/mozbuild/mozbuild/mach_commands.py b/python/mozbuild/mozbuil
  ):
      if not os.path.exists(input):
          print("Input file does not exist: %s" % input)
-@@ -2899,6 +2913,8 @@
+@@ -2899,6 +2913,8 @@ def repackage_deb(
          release_type,
          FluentLocalization,
          FluentResourceLoader,
 +        package_name,
 +        install_path,
      )
- 
- 
+
+
+@@ -2941,6 +2957,18 @@ def repackage_deb(
+     required=True,
+     help="The product being shipped. Used to disambiguate beta/devedition etc.",
+ )
++@CommandArgument(
++    "--package-name",
++    type=str,
++    default=None,
++    help="Override the base package name derived from application.ini",
++)
++@CommandArgument(
++    "--install-path",
++    type=str,
++    default=None,
++    help="Override the package installation path derived from application.ini",
++)
+ @CommandArgument(
+     "--extensions-dir",
+     type=str,
+@@ -2956,6 +2984,8 @@ def repackage_deb_l10n(
+     build_number,
+     templates,
+     product,
++    package_name,
++    install_path,
+     extensions_dir,
+ ):
+     for input_file in (input_xpi_file, input_tar_file):
+@@ -2979,6 +3009,8 @@ def repackage_deb_l10n(
+         build_number,
+         product,
+         extensions_dir,
++        package_name,
++        install_path,
+     )
+
+
 diff --git a/python/mozbuild/mozbuild/repackaging/deb.py b/python/mozbuild/mozbuild/repackaging/deb.py
+index 007537d..0eeeef8 100644
 --- a/python/mozbuild/mozbuild/repackaging/deb.py
 +++ b/python/mozbuild/mozbuild/repackaging/deb.py
-@@ -84,6 +84,8 @@
+@@ -84,6 +84,8 @@ def repackage_deb(
      release_type,
      fluent_localization,
      fluent_resource_loader,
@@ -50,7 +98,7 @@ diff --git a/python/mozbuild/mozbuild/repackaging/deb.py b/python/mozbuild/mozbu
  ):
      if not tarfile.is_tarfile(infile):
          raise Exception("Input file %s is not a valid tarfile." % infile)
-@@ -106,6 +108,8 @@
+@@ -107,6 +109,8 @@ def repackage_deb(
              _DEB_ARCH[arch],
              pkg_version,
              product=product,
@@ -59,10 +107,171 @@ diff --git a/python/mozbuild/mozbuild/repackaging/deb.py b/python/mozbuild/mozbu
          )
          build_variables["DEPENDS"] = "${shlibs:Depends},"
          build_variables["CHANGELOG_DATE"] = format_datetime(
+@@ -159,6 +163,8 @@ def repackage_deb_l10n(
+     build_number,
+     product,
+     extensions_dir,
++    package_name=None,
++    install_path=None,
+ ):
+     arch = "all"
+
+@@ -180,9 +186,13 @@ def repackage_deb_l10n(
+             package_name_suffix=f"-l10n-{langpack_id.lower()}",
+             description_suffix=f" - {langpack_metadata['description']}",
+             product=product,
++            package_name=package_name,
++            install_path=install_path,
+         )
+
+-        if product == "devedition":
++        if package_name is not None:
++            depends_package = package_name
++        elif product == "devedition":
+             depends_package = "firefox-devedition"
+         else:
+             depends_package = application_ini_data["remoting_name"]
+diff --git a/python/mozbuild/mozbuild/repackaging/desktop_file.py b/python/mozbuild/mozbuild/repackaging/desktop_file.py
+index 7db9060..1517043 100644
+--- a/python/mozbuild/mozbuild/repackaging/desktop_file.py
++++ b/python/mozbuild/mozbuild/repackaging/desktop_file.py
+@@ -8,6 +8,7 @@ import os
+ import shutil
+ import subprocess
+ import tempfile
++from contextlib import nullcontext
+
+
+ def generate_browser_desktop_entry_file_text(
+@@ -41,7 +42,9 @@ def generate_browser_desktop_entry(
+     localizations = _create_fluent_localizations(
+         fluent_resource_loader, fluent_localization, release_type, release_product, log
+     )
+-    return _generate_browser_desktop_entry(build_variables, localizations)
++    return _generate_browser_desktop_entry(
++        build_variables, localizations, release_product
++    )
+
+
+ def _create_fluent_localizations(
+@@ -65,35 +68,48 @@ def _create_fluent_localizations(
+         brand_fluent_filename, release_type, release_product
+     )
+
+-    all_revisions = {val["revision"] for val in linux_l10n_changesets.values()}
+-    assert len(all_revisions) == 1
+-    l10n_revision = all_revisions.pop()
++    l10n_base_dir = os.environ.get("L10NBASEDIR")
++    if l10n_base_dir and not os.path.isdir(l10n_base_dir):
++        raise NotADirectoryError(f"L10NBASEDIR does not exist: {l10n_base_dir}")
+
+-    with tempfile.TemporaryDirectory() as l10n_repo_clone:
+-        subprocess.check_call(["git", "init", l10n_repo_clone])
+-        subprocess.check_call(
+-            ["git", "remote", "add", "origin", l10n_central_repo], cwd=l10n_repo_clone
+-        )
+-        subprocess.check_call(
+-            [
+-                "git",
+-                "fetch",
+-                "--no-progress",
+-                "--depth=1",
+-                "origin",
+-                l10n_revision,
+-            ],
+-            cwd=l10n_repo_clone,
+-        )
+-        subprocess.check_call(
+-            [
+-                "git",
+-                "reset",
+-                "--hard",
+-                "FETCH_HEAD",
+-            ],
+-            cwd=l10n_repo_clone,
+-        )
++    l10n_repo_context = (
++        nullcontext(l10n_base_dir)
++        if l10n_base_dir
++        else tempfile.TemporaryDirectory()
++    )
++    with l10n_repo_context as l10n_repo_clone:
++        if not l10n_base_dir:
++            all_revisions = {
++                val["revision"] for val in linux_l10n_changesets.values()
++            }
++            assert len(all_revisions) == 1
++            l10n_revision = all_revisions.pop()
++
++            subprocess.check_call(["git", "init", l10n_repo_clone])
++            subprocess.check_call(
++                ["git", "remote", "add", "origin", l10n_central_repo],
++                cwd=l10n_repo_clone,
++            )
++            subprocess.check_call(
++                [
++                    "git",
++                    "fetch",
++                    "--no-progress",
++                    "--depth=1",
++                    "origin",
++                    l10n_revision,
++                ],
++                cwd=l10n_repo_clone,
++            )
++            subprocess.check_call(
++                [
++                    "git",
++                    "reset",
++                    "--hard",
++                    "FETCH_HEAD",
++                ],
++                cwd=l10n_repo_clone,
++            )
+
+         for locale in locales:
+             locale_dir = os.path.join(l10n_dir, locale)
+@@ -162,6 +178,8 @@ def _get_en_US_brand_fluent_filename(
+     branding_fluent_filename_template = os.path.join(
+         "browser", "branding", "{brand}", "locales", "en-US", brand_fluent_filename
+     )
++    if release_product == "mercury":
++        return branding_fluent_filename_template.format(brand="mercury")
+     if release_type == "nightly":
+         return branding_fluent_filename_template.format(brand="nightly")
+     elif release_type == "release":
+@@ -186,7 +204,9 @@ def _load_linux_l10n_changesets(l10n_changesets_filename):
+         }
+
+
+-def _generate_browser_desktop_entry(build_variables, localizations):
++def _generate_browser_desktop_entry(
++    build_variables, localizations, release_product
++):
+     mime_types = [
+         "application/json",
+         "application/pdf",
+@@ -238,6 +258,14 @@ def _generate_browser_desktop_entry(build_variables, localizations):
+             "command": f"{build_variables['PKG_NAME']} --ProfileManager",
+         },
+     ]
++    if release_product == "mercury":
++        actions.append(
++            {
++                "name": "open-temp-profile",
++                "message": "desktop-action-open-temp-profile",
++                "command": f"{build_variables['PKG_NAME']} --temp-profile",
++            }
++        )
+
+     desktop_entry = _desktop_entry_section(
+         "Desktop Entry",
 diff --git a/python/mozbuild/mozbuild/repackaging/utils.py b/python/mozbuild/mozbuild/repackaging/utils.py
+index 9ae4a75..57b73bb 100644
 --- a/python/mozbuild/mozbuild/repackaging/utils.py
 +++ b/python/mozbuild/mozbuild/repackaging/utils.py
-@@ -88,5 +88,7 @@
+@@ -87,6 +87,8 @@ def get_build_variables(
+     description_suffix="",
      product="",
      build_number="1",
 +    package_name=None,
@@ -70,7 +279,7 @@ diff --git a/python/mozbuild/mozbuild/repackaging/utils.py b/python/mozbuild/moz
  ):
      """
      Massage the application.ini info and other metadata into a dict suitable for passing into packaging templates
-@@ -100,6 +102,10 @@
+@@ -99,6 +101,10 @@ def get_build_variables(
          pkg_name = (
              f"{application_ini_data['remoting_name'].lower()}{package_name_suffix}"
          )
@@ -79,44 +288,47 @@ diff --git a/python/mozbuild/mozbuild/repackaging/utils.py b/python/mozbuild/moz
 +    if install_path is not None:
 +        pkg_install_path = install_path
      timestamp = datetime.strptime(application_ini_data["build_id"], "%Y%m%d%H%M%S")
- 
+
      return {
-diff --git a/python/mozbuild/mozbuild/test/repackaging/test_utils.py b/python/mozbuild/mozbuild/test/repackaging/test_utils.py
---- a/python/mozbuild/mozbuild/test/repackaging/test_utils.py
-+++ b/python/mozbuild/mozbuild/test/repackaging/test_utils.py
-@@ -302,6 +302,35 @@
-         }
- 
- 
-+def test_get_build_variables_package_identity_overrides():
-+    build_variables = utils.get_build_variables(
+diff --git a/python/mozbuild/mozbuild/test/repackaging/test_deb.py b/python/mozbuild/mozbuild/test/repackaging/test_deb.py
+index fd9fc10..816193e 100644
+--- a/python/mozbuild/mozbuild/test/repackaging/test_deb.py
++++ b/python/mozbuild/mozbuild/test/repackaging/test_deb.py
+@@ -141,7 +141,37 @@ Name[zh_TW]=zh-TW-desktop-action-open-profile-manager
+ """
+
+
++def test_mercury_desktop_configuration():
++    assert desktop_file._get_en_US_brand_fluent_filename(
++        "brand.ftl", "release", "mercury"
++    ) == os.path.join(
++        "browser", "branding", "mercury", "locales", "en-US", "brand.ftl"
++    )
++
++    localization = Mock(
++        **{"format_value": lambda message: f"localized-{message}"}
++    )
++    desktop_entry = desktop_file._generate_browser_desktop_entry(
 +        {
-+            "name": "Mercury",
-+            "display_name": "Mercury",
-+            "vendor": "Mercury",
-+            "remoting_name": "com.alex313031.mercury",
-+            "build_id": "20260809000000",
++            "PKG_NAME": "mercury-browser",
++            "Icon": "mercury-browser",
++            "REMOTING_NAME": "com.alex313031.mercury",
 +        },
-+        "amd64",
-+        "153.0.3~build1",
-+        package_name="mercury-browser",
-+        install_path="usr/lib/mercury",
++        {"en-US": localization},
++        "mercury",
 +    )
 +
-+    assert build_variables["PKG_NAME"] == "mercury-browser"
-+    assert build_variables["PKG_INSTALL_PATH"] == "usr/lib/mercury"
-+    assert build_variables["REMOTING_NAME"] == "com.alex313031.mercury"
-+
-+    langpack_variables = utils.get_build_variables(
-+        _APPLICATION_INI_CONTENT_DATA,
-+        "all",
-+        "153.0.3~build1",
-+        package_name_suffix="-l10n-zh-cn",
-+        package_name="mercury-browser",
++    assert (
++        "Actions=new-window;new-private-window;open-profile-manager;open-temp-profile;"
++        in desktop_entry
 +    )
-+    assert langpack_variables["PKG_NAME"] == "mercury-browser-l10n-zh-cn"
++    assert "[Desktop Action open-temp-profile]" in desktop_entry
++    assert "Exec=mercury-browser --temp-profile" in desktop_entry
++    assert "Name=localized-desktop-action-open-temp-profile" in desktop_entry
 +
 +
- def test_copy_plain_config(monkeypatch):
-     def mock_listdir(dir):
-         assert dir == "/template_dir"
+ def test_generate_deb_desktop_entry_file_text(monkeypatch):
++    monkeypatch.delenv("L10NBASEDIR", raising=False)
+
+     def check_call(cmd=[], cwd=None):
+         assert len(cmd) > 1

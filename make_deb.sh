@@ -33,8 +33,9 @@ Options:
 
 Environment variables:
   MOZ_SRC_DIR       Firefox checkout prepared by setup.sh
+  L10NBASEDIR       Prepared Mercury l10n workspace for localized desktop text
   DEB_ARCH          Target architecture: amd64, i386, arm64, x86_64, x86,
-                    or aarch64 (default: the build host architecture)
+                    or aarch64 (default: detected from the archive)
   DEB_BUILD_NUMBER  Debian build number (default: 1)
 EOF
 }
@@ -69,7 +70,7 @@ while (( $# > 0 )); do
 	esac
 done
 
-for command_name in awk dpkg git tar; do
+for command_name in awk dh dpkg-buildpackage dpkg-deb git readelf tar; do
 	command -v "$command_name" >/dev/null 2>&1 || {
 		echo "Required command not found: $command_name" >&2
 		exit 1
@@ -134,13 +135,45 @@ if [[ -z "$version" ]]; then
 	exit 1
 fi
 
-requested_arch="${DEB_ARCH:-$(dpkg --print-architecture)}"
+archive_root="${application_ini_paths[0]%/application.ini}"
+if [[ ! "$archive_root" =~ ^[A-Za-z0-9._+-]+$ || "$archive_root" == "." || "$archive_root" == ".." ]]; then
+	echo "Unsafe top-level archive directory: $archive_root" >&2
+	exit 1
+fi
+binary_member="$archive_root/mercury"
+if ! tar -tf "$archive" | awk -v member="$binary_member" '$0 == member { found = 1 } END { exit !found }'; then
+	echo "Mercury executable not found in archive: $binary_member" >&2
+	exit 1
+fi
+
+inspection_dir="$(mktemp -d "${TMPDIR:-/tmp}/mercury-deb-arch.XXXXXXXX")"
+cleanup() {
+	rm -rf -- "$inspection_dir"
+}
+trap cleanup EXIT
+tar -xf "$archive" -C "$inspection_dir" "$binary_member"
+if ! elf_machine="$(LC_ALL=C readelf -h "$inspection_dir/$binary_member" | awk -F: '/^[[:space:]]*Machine:/ { sub(/^[[:space:]]+/, "", $2); print $2; exit }')"; then
+	echo "Mercury executable is not a readable ELF file: $binary_member" >&2
+	exit 1
+fi
+case "$elf_machine" in
+	*X86-64*) detected_arch="amd64" ;;
+	*80386*) detected_arch="i386" ;;
+	AArch64*) detected_arch="arm64" ;;
+	*) echo "Unsupported or unreadable Mercury ELF architecture: ${elf_machine:-unknown}" >&2; exit 1 ;;
+esac
+
+requested_arch="${DEB_ARCH:-$detected_arch}"
 case "$requested_arch" in
 	amd64|x86_64) mach_arch="x86_64"; deb_arch="amd64" ;;
 	i386|x86) mach_arch="x86"; deb_arch="i386" ;;
 	arm64|aarch64) mach_arch="aarch64"; deb_arch="arm64" ;;
 	*) echo "Unsupported Debian architecture: $requested_arch" >&2; exit 1 ;;
 esac
+if [[ "$deb_arch" != "$detected_arch" ]]; then
+	echo "DEB_ARCH=$requested_arch does not match the archive architecture ($detected_arch)." >&2
+	exit 1
+fi
 
 build_number="${DEB_BUILD_NUMBER:-1}"
 if [[ ! "$build_number" =~ ^[1-9][0-9]*$ ]]; then

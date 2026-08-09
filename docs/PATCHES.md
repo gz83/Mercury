@@ -19,7 +19,7 @@ The versioned patches in `patches/firefox-153/` apply only to
 | `080-mercury-localization.patch` | Mercury-specific About dialog and network error wording |
 | `100-mercury-lto-tuning.patch` | Raise Clang's ThinLTO import instruction limit for Mercury performance builds |
 | `110-mercury-devtools-branding.patch` | Use Mercury branding for the local `about:debugging` runtime without replacing remote Firefox and Fenix channel icons |
-| `120-debian-package-identity.patch` | Allow Firefox's Debian repackager to keep Mercury's package name and installation path separate from its remoting identity |
+| `120-debian-package-identity.patch` | Give Firefox's application and language-pack Debian repackagers Mercury package/install identities and generate localized desktop entries from Mercury branding |
 | `130-mercury-plugin-container-branding.patch` | Use Mercury's company name in the Windows `plugin-container.exe` version resource |
 | `140-mercury-langpack-identity.patch` | Give Mercury language packs a product-specific ID and keep runtime fallback, crash reporter and MSIX packaging consistent |
 | `150-mercury-user-agent-compatibility.patch` | Keep Mercury's network User-Agent Firefox-compatible without replacing Firefox 153's HTTP handler |
@@ -33,8 +33,9 @@ Mercury-owned files remain as source overlays rather than patches:
 - `app/mercury.exe.manifest`: selected automatically for `mercury.exe` by the
   Windows build rules.
 - `app/module.ver`: eight-line Windows branding resource. It remains an overlay
-  because Firefox's legacy source contains a Windows-1252 copyright byte while
-  Mercury's file is UTF-8; a Git binary patch would be harder to audit.
+  because it supplies product-owned version metadata for `mercury.exe`. Its
+  copyright and trademark values intentionally use ASCII because Firefox 153's
+  resource generator reads `module.ver` as Latin-1.
 - `app/distribution/policies.json`: independently maintained product policy.
 - `browser/branding/mercury/`: independently maintained Mercury artwork and
   branding resources, rebased on Firefox 153's `unofficial` branding layout.
@@ -66,6 +67,11 @@ Mercury-owned files remain as source overlays rather than patches:
   manually dispatched `.github/workflows/rebuild-windows-sfx.yml` workflow
   performs the pinned Firefox checkout, x86/ARM64 rebuild, validation,
   attestation, and artifact upload without modifying the repository.
+- `packaging/portable/{linux,windows}/`: auditable launchers used only by
+  `make_portable.sh` after Firefox has produced its native Linux TAR or Windows
+  ZIP. They are release-assembly inputs, not Firefox source overlays. The old
+  root `portable/` directory and its opaque `shc`-generated Linux executable
+  were removed.
 
 ## Removed legacy overlays
 
@@ -120,8 +126,11 @@ Mercury does not enable Firefox's Windows stub installer. Releases contain
 multiple CPU-specific installers and do not provide the single signed payload
 and certificate identity required by the upstream stub download flow.
 
-Mercury's Debian package uses Firefox's `mach repackage deb` implementation.
-The product-specific templates live in `packaging/debian/`; the old committed
+Mercury's Debian packages use Firefox's `mach repackage deb` and
+`mach repackage deb-l10n` implementations. Product-specific templates live in
+`packaging/debian/` and `packaging/debian-langpack/`. Firefox's localized
+desktop generator supplies the application entry and uses `L10NBASEDIR` when
+the prepared Mercury localization workspace is available. The old committed
 `dist/` root filesystem and its duplicated icons, compressed documentation,
 static dependency list, and legacy MIME registration were removed.
 
