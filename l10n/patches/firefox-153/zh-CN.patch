@@ -1,0 +1,70 @@
+diff --git a/zh-CN/browser/browser/aboutDialog.ftl b/zh-CN/browser/browser/aboutDialog.ftl
+index cb95c4f22f02..41c43285fa8d 100644
+--- a/zh-CN/browser/browser/aboutDialog.ftl
++++ b/zh-CN/browser/browser/aboutDialog.ftl
+@@ -66,7 +66,7 @@ warningDesc-version = { -brand-short-name } 是实验性的测试版本，可能
+ aboutdialog-help-user = { -brand-product-name } 帮助
+ aboutdialog-submit-feedback = 提交反馈
+ community-exp = <label data-l10n-name="community-exp-mozillaLink">{ -vendor-short-name }</label> 是一个<label data-l10n-name="community-exp-creditsLink">全球社区</label>，携手致力于让互联网保持开放、公开且人人可用。
+-community-2 = { -brand-short-name } 诞生于 <label data-l10n-name="community-mozillaLink">{ -vendor-short-name }</label>。我们是一个<label data-l10n-name="community-creditsLink">全球社区</label>，携手致力于让互联网保持开放、公开且人人可用。
++community-2 = { -brand-short-name } 由 Alex313031 与 <label data-l10n-name="community-mozillaLink">Mozilla</label> 共同打造。Mozilla 是一个<label data-l10n-name="community-creditsLink">全球社区</label>，携手致力于让互联网保持开放、公开且人人可用。
+ helpus = 想支持我们吗？<label data-l10n-name="helpus-donateLink">向我们捐款</label>或者<label data-l10n-name="helpus-getInvolvedLink">参与进来</label>！
+ bottomLinks-license = 许可信息
+ bottom-links-terms = 使用条款
+diff --git a/zh-CN/browser/chrome/overrides/appstrings.properties b/zh-CN/browser/chrome/overrides/appstrings.properties
+index ae2fd5300cd0..5800c5ce83d7 100755
+--- a/zh-CN/browser/chrome/overrides/appstrings.properties
++++ b/zh-CN/browser/chrome/overrides/appstrings.properties
+@@ -3,30 +3,30 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ malformedURI2 = 请检查网址是否正确，然后重试。
+-fileNotFound = Firefox 无法在 %S 找到该文件。
++fileNotFound = Mercury 无法在 %S 找到该文件。
+ fileAccessDenied = 无法读取 %S 上的该文件。
+ # %S is replaced by the uri host
+ httpErrorPage = %S 发回一个错误。
+ serverError = %S 可能暂时出现问题，也可能已被移动。
+ dnsNotFound2 = 我们无法连接至 %S 的服务器。
+ basicHttpAuthDisabled = 若有人冒充此网站，其可试图窃取您的用户名、密码、邮箱地址等信息。
+-unknownProtocolFound = Firefox 不知道如何打开这个地址，因为协议 (%S) 未与任何程序关联，或此环境下不可打开该协议的地址。
+-connectionFailure = Firefox 无法建立到 %S 服务器的连接。
++unknownProtocolFound = Mercury 不知道如何打开这个地址，因为协议 (%S) 未与任何程序关联，或此环境下不可打开该协议的地址。
++connectionFailure = Mercury 无法建立到 %S 服务器的连接。
+ netInterrupt = 加载页面时与 %S 的连接中断。
+ netTimeout = %S 的服务器响应时间过长。
+-redirectLoop = Firefox 检测到该服务器正在将指向此网址的请求无限循环重定向。
++redirectLoop = Mercury 检测到该服务器正在将指向此网址的请求无限循环重定向。
+ ## LOCALIZATION NOTE (confirmRepostPrompt): In this item, don’t translate "%S"
+ confirmRepostPrompt = 为了显示此页面，%S 必须发送将重复此前操作（例如搜索或者确认订单）的信息。
+ resendButton.label = 重新发送
+-clientSocketMisconfiguration = Firefox 不知道如何与该服务器通信。
++clientSocketMisconfiguration = Mercury 不知道如何与该服务器通信。
+ unknownSocketType = Firefox 不知道如何与该服务器通信。
+ netReset = 加载页面时与服务器的连接被重置。
+ notCached = 该文档不再可用。
+-netOffline = Firefox 正处于脱机模式，不能浏览网络。
++netOffline = Mercury 正处于脱机模式，不能浏览网络。
+ isprinting = 正在打印或者打印预览时文档无法修改。
+-deniedPortAccess = 此网址使用了一个通常用于网络浏览以外目的的端口。出于安全原因，Firefox 取消了该请求。
+-proxyResolveFailure = Firefox 无法找到您指定的代理服务器。
+-proxyConnectFailure = Firefox 尝试与您指定的代理服务器连接时被拒绝。
++deniedPortAccess = 此网址使用了一个通常用于网络浏览以外目的的端口。出于安全原因，Mercury 取消了该请求。
++proxyResolveFailure = Mercury 无法找到您指定的代理服务器。
++proxyConnectFailure = Mercury 尝试与您指定的代理服务器连接时被拒绝。
+ contentEncodingError = 您尝试查看的页面无法显示，因为它使用了无效的或者不受支持的压缩格式。
+ unsafeContentType = 无法显示您尝试查看的页面，它包含在不能安全打开的文件类型中。建议向此网站的管理员反馈这个问题。
+ externalProtocolTitle = 外部协议请求
+@@ -44,9 +44,9 @@ cspBlocked = 此页面的内容安全策略禁止它以该种方式加载。
+ xfoBlocked = 此页面包含的内容安全策略阻止了在此上下文中进行的加载。
+ corruptedContentErrorv2 = 在网站 %S 遇到一个无法修复的网络协议违规。
+ ## LOCALIZATION NOTE (sslv3Used) - Do not translate "%S".
+-sslv3Used = Firefox 无法保证您在 %S 上的数据安全性，因为它使用 SSLv3，一个目前安全性欠佳的安全协议。
++sslv3Used = Mercury 无法保证您在 %S 上的数据安全性，因为它使用 SSLv3，一个目前安全性欠佳的安全协议。
+ inadequateSecurityError = 该网站尝试协商的安全级别不足。
+ blockedByPolicy = 您的组织已封锁此页面或网站。
+-blockedByCORP = Firefox 未加载此页面，因为其安全配置与上个页面似乎不一致。
++blockedByCORP = Mercury 未加载此页面，因为其安全配置与上个页面似乎不一致。
+ invalidHeaderValue = %S 发回了一个消息头，其中包含 Web 安全标准所不允许的空字符。
+-networkProtocolError = Firefox 遇到一个无法修复的网络协议违规。
++networkProtocolError = Mercury 遇到一个无法修复的网络协议违规。

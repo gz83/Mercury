@@ -1,0 +1,22 @@
+diff --git a/browser/app/distribution/moz.build b/browser/app/distribution/moz.build
+--- a/browser/app/distribution/moz.build
++++ b/browser/app/distribution/moz.build
+@@ -8,3 +8,7 @@
+     FINAL_TARGET_FILES.distribution += [
+         "distribution.ini",
+     ]
++
++FINAL_TARGET_FILES.distribution += [
++    "policies.json",
++]
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -462,4 +462,6 @@
+ 
+ #if defined(BUILT_BY_MOZILLA)
+ @RESPATH@/distribution/*
++#else
++@RESPATH@/distribution/policies.json
+ #endif
+

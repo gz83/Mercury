@@ -1,0 +1,59 @@
+Mercury Windows SFX overlays
+============================
+
+This directory contains the three binary inputs that cannot be represented as
+ordinary text patches:
+
+- 7zSD.Win32.sfx: outer self-extractor used by x86 and x86-64 installers.
+- 7zSD.ARM64.sfx: outer self-extractor used by ARM64 installers.
+- setup.ico: Mercury icon embedded when the two executables are rebuilt.
+
+Firefox deliberately checks prebuilt SFX executables into its source tree so
+that packaging does not require Visual Studio. Mercury follows that model but
+keeps all editable resource changes in
+patches/firefox-153/170-mercury-windows-sfx-branding.patch. setup.sh copies
+only these three files over the pinned Firefox tree; it does not replace the
+7-Zip/LZMA SDK source or build projects.
+
+Firefox stores resource.rc with CRLF line endings, so Git encodes patch 170 as
+an exact binary delta. The decoded changes set CompanyName and LegalCopyright
+to Alex313031, FileDescription to Mercury Browser Installer, ProductName to
+Mercury, and the minimum-system message to Microsoft Windows 10 or newer.
+
+<!-- BEGIN GENERATED SFX BUILD INFO -->
+The current executables identify themselves as 7-Zip Self-extracting Archive
+18.05 and were built on 2024-09-07. They preserve Mercury's installer identity,
+but they predate the Firefox 153 source baseline. Treat them as transitional
+release inputs until they have been regenerated from the patched Firefox 153
+tree. Do not claim a Firefox 153 rebuild solely from their location here.
+
+Current transitional input hashes:
+
+    fea8007660a2071abda5b135e43bf6c3b4582a37242d507abd3b44ace5bfc408  7zSD.ARM64.sfx
+    ca0f0f0d1281ca18593e39d0b84b0ac4722da654e64d25c2f64c5bc622ee46df  7zSD.Win32.sfx
+<!-- END GENERATED SFX BUILD INFO -->
+
+Rebuild procedure
+-----------------
+
+The preferred rebuild path is the manually dispatched
+`.github/workflows/rebuild-windows-sfx.yml` workflow. It verifies both outputs,
+and uploads them with SHA256SUMS.txt, BUILDINFO.json, and build provenance. The
+workflow never modifies the repository. Download its artifact, inspect the
+metadata, and manually replace both checked-in SFX files. Preserve BUILDINFO.json
+with the release records and update the generated hash block above. For a local
+rebuild:
+
+1. Run setup.sh against FIREFOX_153_0_3_RELEASE so patch 170 and setup.ico are
+   present in the Firefox checkout.
+2. Follow other-licenses/7zstub/README.mozilla in that checkout.
+3. Open other-licenses/7zstub/firefox/SFXSetup.sln with the Visual Studio 2022
+   C++ x86 and ARM64 toolchains.
+4. Build the ReleaseD configuration for x86 and ARM64.
+5. Replace 7zSD.Win32.sfx and 7zSD.ARM64.sfx in this directory.
+6. Verify both files' version resources, icon, architecture, minimum-Windows
+   message, and SHA-256 hashes. Then build and launch each Windows installer.
+
+Regenerate both executables whenever Firefox changes any file under
+other-licenses/7zstub, even if Firefox does not update its checked-in binaries
+in the same commit.

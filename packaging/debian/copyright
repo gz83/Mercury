@@ -1,0 +1,23 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Mercury
+Source: https://github.com/Alex313031/Mercury
+
+Files: *
+Copyright: 1998-2026 Mozilla contributors
+           2024-2026 Alex313031 and Mercury contributors
+License: MPL-2.0
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ .
+ On Debian systems, the complete text of the Mozilla Public License 2.0
+ is available at /usr/share/common-licenses/MPL-2.0.
+
+Files: third_party/*
+       browser/extensions/*
+       other-licenses/*
+Copyright: their respective authors
+License: other
+ These components retain the copyright notices and license files shipped
+ in the installed Mercury application and published in the corresponding
+ source tree.

@@ -1,0 +1,22 @@
+diff --git a/devtools/client/aboutdebugging/src/components/sidebar/Sidebar.js b/devtools/client/aboutdebugging/src/components/sidebar/Sidebar.js
+--- a/devtools/client/aboutdebugging/src/components/sidebar/Sidebar.js
++++ b/devtools/client/aboutdebugging/src/components/sidebar/Sidebar.js
+@@ -42,8 +42,7 @@ const RefreshDevicesButton = createFactory(
+   require("resource://devtools/client/aboutdebugging/src/components/sidebar/RefreshDevicesButton.js")
+ );
+-const FIREFOX_ICON =
+-  "chrome://devtools/skin/images/aboutdebugging-firefox-logo.svg";
++const PRODUCT_ICON = "chrome://branding/content/about-logo.svg";
+ const CONNECT_ICON = "chrome://devtools/skin/images/settings.svg";
+ const GLOBE_ICON =
+   "chrome://devtools/skin/images/aboutdebugging-globe-icon.svg";
+ const USB_ICON =
+@@ -223,7 +222,7 @@ class Sidebar extends PureComponent {
+         Localized(
+           { id: "about-debugging-sidebar-this-firefox", attrs: { name: true } },
+           SidebarFixedItem({
+-            icon: FIREFOX_ICON,
++            icon: PRODUCT_ICON,
+             isSelected:
+               PAGE_TYPES.RUNTIME === selectedPage &&
+               selectedRuntimeId === RUNTIMES.THIS_FIREFOX,

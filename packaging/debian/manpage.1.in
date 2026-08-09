@@ -1,0 +1,59 @@
+.TH MERCURY-BROWSER 1 "${MANPAGE_DATE}" "Mercury" "User Commands"
+.SH NAME
+mercury-browser \- launch the Mercury web browser
+.SH SYNOPSIS
+.B mercury-browser
+.RI [ options ]
+.RI [ URL ]
+.SH DESCRIPTION
+.B mercury-browser
+starts Mercury, an optimized Firefox-based web browser. Browser command-line
+arguments are passed to the Mercury executable unchanged.
+.SH OPTIONS
+.TP
+.BR \-h , " " \-\-help
+Show launcher help and exit.
+.TP
+.B \-\-temp-profile
+Start with a newly created profile and delete that profile when Mercury exits.
+.TP
+.BI \-P " profile"
+Start Mercury with the named profile.
+.TP
+.BI \-\-profile " path"
+Start Mercury with the profile stored at
+.IR path .
+.TP
+.BI \-\-new-tab " URL"
+Open
+.I URL
+in a new tab.
+.TP
+.BI \-\-new-window " URL"
+Open
+.I URL
+in a new window.
+.TP
+.B \-\-private-window
+Open a private browsing window.
+.TP
+.B \-\-safe-mode
+Start Mercury in troubleshooting mode.
+.TP
+.BR \-v , " " \-\-version
+Print the Mercury version.
+.SH FILES
+.TP
+.I $$XDG_CONFIG_HOME/mercury/flags.conf
+Optional additional command-line flags. If
+.B XDG_CONFIG_HOME
+is unset,
+.I $$HOME/.config/mercury/flags.conf
+is used.
+.TP
+.I $$HOME/.mercury/mercury-flags.conf
+Legacy location for additional command-line flags.
+.SH SEE ALSO
+.BR firefox (1)
+.PP
+Mercury project page: https://github.com/Alex313031/Mercury

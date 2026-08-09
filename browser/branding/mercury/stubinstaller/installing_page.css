@@ -34,7 +34,7 @@ body.high-contrast #progress_background {
   margin: 0;
   width: 0%;
   height: 100%;
-  background-color: #00AAFF;
+  background-color: #00aaff;
 }
 
 /* In high contrast mode, fill the entire progress bar with its border. */
@@ -44,8 +44,9 @@ body.high-contrast #progress_bar {
   box-sizing: border-box;
 }
 
-/* This layout doesn't want the header or content text. */
-#header, #content {
+/* Mercury's installer artwork does not use the stock header or content. */
+#header,
+#content {
   display: none;
 }
 
@@ -53,7 +54,6 @@ body.high-contrast #progress_bar {
   font-size: 20px;
 }
 
-/* The footer goes in the bottom right corner. */
 #footer {
   position: fixed;
   right: 50px;

@@ -1,0 +1,35 @@
+diff --git a/browser/app/Makefile.in b/browser/app/Makefile.in
+--- a/browser/app/Makefile.in
++++ b/browser/app/Makefile.in
+@@ -84,7 +84,6 @@
+ 	rsync -aL $(DIST)/bin/$(MOZ_APP_NAME) '$(dist_dest)/Contents/MacOS'
+ 	cp -RL $(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/firefox.icns '$(dist_dest)/Contents/Resources/firefox.icns'
+ 	cp -RL $(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/document.icns '$(dist_dest)/Contents/Resources/document.icns'
+-	cp -RL $(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/Assets.car '$(dist_dest)/Contents/Resources/Assets.car'
+ 	$(MKDIR) -p '$(dist_dest)/Contents/Library/LaunchServices'
+ ifdef MOZ_UPDATER
+ 	cp -f '$(dist_dest)/Contents/MacOS/updater.app/Contents/MacOS/org.mozilla.updater' '$(dist_dest)/Contents/Library/LaunchServices'
+diff --git a/browser/app/macbuild/Contents/Info.plist.in b/browser/app/macbuild/Contents/Info.plist.in
+--- a/browser/app/macbuild/Contents/Info.plist.in
++++ b/browser/app/macbuild/Contents/Info.plist.in
+@@ -189,9 +189,7 @@
+ 	<key>CFBundleGetInfoString</key>
+ 	<string>@MAC_APP_NAME@ @APP_VERSION@</string>
+ 	<key>CFBundleIconFile</key>
+ 	<string>firefox.icns</string>
+-	<key>CFBundleIconName</key>
+-	<string>AppIcon</string>
+ 	<key>CFBundleIdentifier</key>
+ 	<string>@MOZ_MACBUNDLE_ID@</string>
+ 	<key>CFBundleInfoDictionaryVersion</key>
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -42,7 +42,6 @@
+ @APPNAME@/Contents/PkgInfo
+ @RESPATH@/firefox.icns
+ @RESPATH@/document.icns
+-@RESPATH@/Assets.car
+ @RESPATH@/@LPROJ_ROOT@.lproj/*
+ #endif
+ 

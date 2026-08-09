@@ -1,17 +1,39 @@
-## Debugging <img src="https://github.com/Alex313031/Mercury/blob/main/logos/bug.svg" width="28">
+# Debugging Mercury
 
-### Useful cmdline flags
--new-instance // Open new instance, not a new window in running instance, which allows multiple copies of application to be open at a time. \
--P "profile_name" // Bypass profile manager and launch application with the profile named profile_name. Useful for dealing with multiple profiles. \
--profile "profile_path" // Start with the profile with the given path. \
---kiosk URL // Open URL full screen without user interface. \
--devtools // Start with native developer tools opened. \
--purgecaches // Gecko (layout engine) has a JavaScript cache, which is not reset on startup, this clears it. \
--version // Print Mercury version to stdout. \
--tray // Start Mercury minimized. \
--safe-mode // Start Mercury in safe mode. \
+## Command-line options
 
- - `about:config` is the equivalent of the chrome://flags page. Use this for experimenting, debugging, and tweaking.
+Mercury supports Firefox's current command-line interface. Common options are:
 
-### Resources
-__*&#42;For more information about debugging,* See > [Logging](https://firefox-source-docs.mozilla.org/mach/logging.html), [Command Line Options](https://wiki.mozilla.org/Firefox/CommandLineOptions), [Browser Console](https://firefox-source-docs.mozilla.org/devtools-user/browser_console/index.html), [Browser Toolbox](https://firefox-source-docs.mozilla.org/devtools-user/browser_toolbox/index.html), [DevTools](https://firefox-source-docs.mozilla.org/devtools-user/index.html), [Web Debugging](https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/index.html), and [Debugging the Browser](https://firefox-source-docs.mozilla.org/contributing/debugging/debugging_firefox_with_gdb.html).
+| Option | Purpose |
+| --- | --- |
+| `--new-instance` | Start a separate instance instead of forwarding to a running browser |
+| `-P NAME` | Start with the named profile |
+| `--profile PATH` | Start with the profile stored at `PATH` |
+| `--ProfileManager` | Open the profile manager |
+| `--kiosk URL` | Open a URL in kiosk mode |
+| `--devtools` | Open the browser with Developer Tools |
+| `--purgecaches` | Invalidate Gecko startup and JavaScript caches |
+| `--safe-mode` | Start in troubleshooting mode with extensions and themes disabled |
+| `--version` | Print the Mercury version |
+| `--MOZ_LOG=MODULES` | Enable Gecko logging for the selected modules |
+
+When running from the Firefox source checkout, pass application arguments after
+`--`:
+
+```bash
+./mach run -- --new-instance --profile /tmp/mercury-profile
+```
+
+Use `about:config` to inspect or temporarily change preferences. Mercury's
+audited product defaults and their owners are documented in
+[PREFERENCES.md](PREFERENCES.md).
+
+## Resources
+
+- [Firefox logging](https://firefox-source-docs.mozilla.org/mach/logging.html)
+- [Command-line options](https://wiki.mozilla.org/Firefox/CommandLineOptions)
+- [Browser Console](https://firefox-source-docs.mozilla.org/devtools-user/browser_console/index.html)
+- [Browser Toolbox](https://firefox-source-docs.mozilla.org/devtools-user/browser_toolbox/index.html)
+- [DevTools](https://firefox-source-docs.mozilla.org/devtools-user/index.html)
+- [`about:debugging`](https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/index.html)
+- [Debugging Firefox with GDB](https://firefox-source-docs.mozilla.org/contributing/debugging/debugging_firefox_with_gdb.html)

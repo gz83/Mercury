@@ -1,0 +1,89 @@
+diff --git a/toolkit/moz.configure b/toolkit/moz.configure
+--- a/toolkit/moz.configure
++++ b/toolkit/moz.configure
+@@ -3780,6 +3780,6 @@ def moz_langpack_eid_host(dev_edition):
+     if dev_edition:
+         return "devedition.mozilla.org"
+-    return "firefox.mozilla.org"
++    return "mercury.alex313031.github.io"
+ 
+ 
+ set_config("MOZ_LANGPACK_EID_HOST", moz_langpack_eid_host)
+diff --git a/toolkit/modules/AppConstants.sys.mjs b/toolkit/modules/AppConstants.sys.mjs
+--- a/toolkit/modules/AppConstants.sys.mjs
++++ b/toolkit/modules/AppConstants.sys.mjs
+@@ -161,6 +161,7 @@ export var AppConstants = Object.freeze({
+   DLL_SUFFIX: "@DLL_SUFFIX@",
+ 
+   MOZ_APP_NAME: "@MOZ_APP_NAME@",
++  MOZ_LANGPACK_EID_HOST: "@MOZ_LANGPACK_EID_HOST@",
+   MOZ_APP_BASENAME: "@MOZ_APP_BASENAME@",
+   // N.b.: you almost certainly want brandShortName/brand-short-name:
+   // MOZ_APP_DISPLAYNAME should only be used for static user-visible
+diff --git a/tools/@types/subs/AppConstants.sys.d.mts b/tools/@types/subs/AppConstants.sys.d.mts
+--- a/tools/@types/subs/AppConstants.sys.d.mts
++++ b/tools/@types/subs/AppConstants.sys.d.mts
+@@ -108,6 +108,7 @@ export interface AppConstants {
+   DLL_SUFFIX: ".dll" | ".so";
+ 
+   MOZ_APP_NAME: "firefox" | "thunderbird";
++  MOZ_LANGPACK_EID_HOST: string;
+   MOZ_APP_BASENAME: "Firefox";
+ 
+   // N.b.: you almost certainly want brandShortName/brand-short-name:
+diff --git a/intl/locale/LangPackMatcher.sys.mjs b/intl/locale/LangPackMatcher.sys.mjs
+--- a/intl/locale/LangPackMatcher.sys.mjs
++++ b/intl/locale/LangPackMatcher.sys.mjs
+@@ -6,6 +6,7 @@ const lazy = {};
+ 
+ ChromeUtils.defineESModuleGetters(lazy, {
+   AddonManager: "resource://gre/modules/AddonManager.sys.mjs",
++  AppConstants: "resource://gre/modules/AppConstants.sys.mjs",
+   AddonRepository: "resource://gre/modules/addons/AddonRepository.sys.mjs",
+   RemoteSettings: "resource://services-settings/remote-settings.sys.mjs",
+ });
+@@ -424,7 +425,8 @@ async function getAvailableLocales() {
+   // If defaultLocale isn't lastFallbackLocale, then we still need the langpack
+   // for lastFallbackLocale for it to be useful.
+   if (defaultLocale != lastFallbackLocale) {
+-    let lastFallbackId = `langpack-${lastFallbackLocale}@firefox.mozilla.org`;
++    let lastFallbackId =
++      `langpack-${lastFallbackLocale}@${lazy.AppConstants.MOZ_LANGPACK_EID_HOST}`;
+     let lastFallbackInstalled =
+       await lazy.AddonManager.getAddonByID(lastFallbackId);
+     if (!lastFallbackInstalled) {
+diff --git a/python/mozbuild/mozbuild/repackaging/msix.py b/python/mozbuild/mozbuild/repackaging/msix.py
+--- a/python/mozbuild/mozbuild/repackaging/msix.py
++++ b/python/mozbuild/mozbuild/repackaging/msix.py
+@@ -590,6 +590,10 @@ def repackage_msix(
+                 # are presented in CI.
+                 base, locale = os.path.split(os.path.dirname(p))
+ 
++                langpack_eid_host = f"{app_name}.mozilla.org"
++                if app_name == "mercury":
++                    langpack_eid_host = "mercury.alex313031.github.io"
++
+                 # Like "locale-LOCALE/langpack-LOCALE@firefox.mozilla.org.xpi".  This is what AMO
+                 # serves and how flatpak builds name langpacks, but not how snap builds name
+                 # langpacks.  I can't explain the discrepancy.
+@@ -598,7 +603,7 @@ def repackage_msix(
+                     mozpath.join(
+                         base,
+                         f"locale-{locale}",
+-                        f"langpack-{locale}@{app_name}.mozilla.org.xpi",
++                        f"langpack-{locale}@{langpack_eid_host}.xpi",
+                     )
+                 )
+ 
+diff --git a/toolkit/crashreporter/client/app/src/lang/langpack.rs b/toolkit/crashreporter/client/app/src/lang/langpack.rs
+--- a/toolkit/crashreporter/client/app/src/lang/langpack.rs
++++ b/toolkit/crashreporter/client/app/src/lang/langpack.rs
+@@ -137,7 +137,7 @@ fn parse_requested_locales(v: &str) -> Option<Vec<&str>> {
+ 
+ /// Find the langpack extension for the given locale.
+ fn find_langpack_extension(profile_dir: &Path, locale: &str) -> Option<PathBuf> {
+-    let path_tail = format!("extensions/langpack-{locale}@firefox.mozilla.org.xpi");
++    let path_tail = format!("extensions/langpack-{locale}@mercury.alex313031.github.io.xpi");
+ 
+     // Check profile extensions
+     let profile_path = profile_dir.join(&path_tail);

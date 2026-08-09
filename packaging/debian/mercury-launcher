@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Copyright (c) 2024 The Chromium Authors, Mozilla, and Alex313031.
+# Use of this source code is governed by a license that can be found in the LICENSE file.
+
+set -u
+
+MERCURY_BINARY="/usr/lib/mercury/mercury"
+MOZ_APP_LAUNCHER="$(readlink -f "$0")"
+export MOZ_APP_LAUNCHER
+
+usage() {
+	cat <<'EOF'
+mercury-browser [-h|--help] [--temp-profile] [options] [URL]
+
+  -h, --help       Show this help
+  --temp-profile   Start with a new profile that is deleted on exit
+
+Additional arguments are passed to Mercury.
+EOF
+}
+
+if [[ ! -x "$MERCURY_BINARY" ]]; then
+	echo "Mercury executable not found: $MERCURY_BINARY" >&2
+	exit 127
+fi
+
+want_temp_profile=0
+case "${1:-}" in
+	-h|--help|-help)
+		usage
+		exit 0
+		;;
+	--temp-profile)
+		want_temp_profile=1
+		shift
+		;;
+esac
+
+user_flags=()
+flags_file="${XDG_CONFIG_HOME:-$HOME/.config}/mercury/flags.conf"
+legacy_flags_file="$HOME/.mercury/mercury-flags.conf"
+if [[ ! -f "$flags_file" && -f "$legacy_flags_file" ]]; then
+	flags_file="$legacy_flags_file"
+fi
+if [[ -f "$flags_file" ]]; then
+	while IFS= read -r flags_line || [[ -n "$flags_line" ]]; do
+		[[ -z "$flags_line" || "$flags_line" == \#* ]] && continue
+		read -r -a parsed_flags <<< "$flags_line"
+		user_flags+=("${parsed_flags[@]}")
+	done < "$flags_file"
+fi
+
+if (( want_temp_profile == 1 )); then
+	temp_profile="$(mktemp -d "${TMPDIR:-/tmp}/mercury-profile.XXXXXXXX")"
+	cleanup() {
+		rm -rf -- "$temp_profile"
+	}
+	trap cleanup EXIT
+	trap 'exit 129' HUP
+	trap 'exit 130' INT
+	trap 'exit 143' TERM
+	printf 'Using temporary profile: %s\n' "$temp_profile"
+	"$MERCURY_BINARY" --profile "$temp_profile" "${user_flags[@]}" "$@"
+	exit $?
+fi
+
+exec "$MERCURY_BINARY" "${user_flags[@]}" "$@"

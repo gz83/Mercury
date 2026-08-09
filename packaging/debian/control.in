@@ -1,0 +1,15 @@
+Source: ${PKG_NAME}
+Maintainer: Mercury Browser maintainers <alex313031@gmail.com>
+Priority: optional
+Section: web
+Build-Depends: debhelper (>= 9)
+Homepage: https://github.com/Alex313031/Mercury
+
+Package: ${PKG_NAME}
+Architecture: ${ARCH_NAME}
+Depends: ${DEPENDS}
+Recommends: libcanberra0, libvulkan1
+Provides: gnome-www-browser, www-browser
+Description: optimized Firefox fork with privacy and performance patches
+ Mercury combines Firefox with compiler optimizations and independently
+ maintained privacy, usability, and performance changes.

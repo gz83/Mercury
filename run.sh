@@ -25,20 +25,19 @@ case $1 in
 	--help) displayHelp; exit 0;;
 esac
 
-# mozilla source dir env variable
-if [ -z "${HG_SRC_DIR}" ]; then 
-    HG_SRC_DIR="$HOME/mozilla-unified"
-    export HG_SRC_DIR
-else 
-    HG_SRC_DIR="${HG_SRC_DIR}"
-    export HG_SRC_DIR
-fi
+# Firefox source directory
+DEFAULT_MOZ_SRC_DIR="$HOME/firefox"
+case "${OSTYPE:-}" in
+	msys*|cygwin*) DEFAULT_MOZ_SRC_DIR="/c/mozilla-source/firefox" ;;
+esac
+MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
+export MOZ_SRC_DIR
 
 printf "\n" &&
 printf "${bold}${GRE}Script to run Mercury in dev mode.${c0}\n" &&
 printf "\n" &&
 tput sgr0 &&
 
-cd ${HG_SRC_DIR} &&
+cd "${MOZ_SRC_DIR}" &&
 
 ./mach run

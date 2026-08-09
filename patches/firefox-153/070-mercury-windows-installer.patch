@@ -1,0 +1,82 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -826,7 +826,7 @@
+     ) {
+       this._resetProfileNotification("unused");
+     } else if (AppConstants.platform == "win" && !disableResetPrompt) {
+-      // Check if we were just re-installed and offer Firefox Reset
++      // Check if we were just re-installed and offer Mercury Reset
+       let updateChannel;
+       try {
+         updateChannel = ChromeUtils.importESModule(
+@@ -836,12 +836,12 @@
+       if (updateChannel) {
+         let uninstalledValue = lazy.WindowsRegistry.readRegKey(
+           Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
+-          "Software\\Mozilla\\Firefox",
++          "Software\\Mozilla\\Mercury",
+           `Uninstalled-${updateChannel}`
+         );
+         let removalSuccessful = lazy.WindowsRegistry.removeRegKey(
+           Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
+-          "Software\\Mozilla\\Firefox",
++          "Software\\Mozilla\\Mercury",
+           `Uninstalled-${updateChannel}`
+         );
+         if (removalSuccessful && uninstalledValue == "True") {
+diff --git a/browser/installer/windows/app.tag b/browser/installer/windows/app.tag
+--- a/browser/installer/windows/app.tag
++++ b/browser/installer/windows/app.tag
+@@ -1,4 +1,4 @@
+ ;!@Install@!UTF-8!
+-Title="Mozilla Firefox"
++Title="Mercury"
+ RunProgram="setup.exe"
+ ;!@InstallEnd@!
+\ No newline at end of file
+diff --git a/browser/installer/windows/msix/AppxManifest.xml.in b/browser/installer/windows/msix/AppxManifest.xml.in
+--- a/browser/installer/windows/msix/AppxManifest.xml.in
++++ b/browser/installer/windows/msix/AppxManifest.xml.in
+@@ -36,7 +36,7 @@
+   </Capabilities>
+   <Applications>
+     <Application Id="App" Executable="VFS\ProgramFiles\@APPX_INSTDIR@\@MOZ_APP_NAME@.exe" EntryPoint="Windows.FullTrustApplication">
+-      <uap:VisualElements BackgroundColor="#20123A" DisplayName="@MOZ_APP_DISPLAYNAME@" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="@MOZ_APP_DISPLAYNAME@">
++      <uap:VisualElements BackgroundColor="#14171A" DisplayName="@MOZ_APP_DISPLAYNAME@" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="@MOZ_APP_DISPLAYNAME@">
+         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png">
+           <uap:ShowNameOnTiles>
+             <uap:ShowOn Tile="square150x150Logo"/>
+diff --git a/browser/installer/windows/nsis/uninstaller.nsi b/browser/installer/windows/nsis/uninstaller.nsi
+--- a/browser/installer/windows/nsis/uninstaller.nsi
++++ b/browser/installer/windows/nsis/uninstaller.nsi
+@@ -199,10 +199,10 @@
+ !insertmacro MUI_UNPAGE_INSTFILES
+ 
+ ; Finish Page
+-!define MUI_FINISHPAGE_SHOWREADME
+-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+-!define MUI_FINISHPAGE_SHOWREADME_TEXT $(UN_SURVEY_CHECKBOX_LABEL)
+-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.Survey
++; !define MUI_FINISHPAGE_SHOWREADME
++; !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
++; !define MUI_FINISHPAGE_SHOWREADME_TEXT $(UN_SURVEY_CHECKBOX_LABEL)
++; !define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.Survey
+ !define MUI_PAGE_CUSTOMFUNCTION_PRE un.preFinish
+ !define MUI_PAGE_CUSTOMFUNCTION_SHOW un.showFinish
+ !insertmacro MUI_UNPAGE_FINISH
+@@ -733,9 +733,9 @@
+-  ; Users who uninstall then reinstall expecting Firefox to use a clean profile
+-  ; may be surprised during first-run. This key is checked during startup of Firefox and
++  ; Users who uninstall then reinstall expecting Mercury to use a clean profile
++  ; may be surprised during first-run. This key is checked during startup of Mercury and
+   ; subsequently deleted after checking. If the value is found during startup
+-  ; the browser will offer to Reset Firefox. We use the UpdateChannel to match
++  ; the browser will offer to Reset Mercury. We use the UpdateChannel to match
+-  ; uninstalls of Firefox-release with reinstalls of Firefox-release, for example.
+-  WriteRegStr HKCU "Software\Mozilla\Firefox" "Uninstalled-${UpdateChannel}" "True"
++  ; uninstalls of Mercury-release with reinstalls of Mercury-release, for example.
++  WriteRegStr HKCU "Software\Mozilla\Mercury" "Uninstalled-${UpdateChannel}" "True"
+ 
+ !ifdef MOZ_MAINTENANCE_SERVICE
+   ; Get the path the allowed cert is at and remove it

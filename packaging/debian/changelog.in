@@ -1,0 +1,5 @@
+${PKG_NAME} (${PKG_VERSION}) stable; urgency=medium
+
+  * Package Mercury with Firefox's Debian repackaging workflow.
+
+ -- Mercury Browser maintainers <alex313031@gmail.com>  ${CHANGELOG_DATE}

@@ -2,63 +2,83 @@
 
 # Copyright (c) 2024 Alex313031.
 
-YEL='\033[1;33m' # Yellow
-CYA='\033[1;96m' # Cyan
-RED='\033[1;31m' # Red
-GRE='\033[1;32m' # Green
-c0='\033[0m' # Reset Text
-bold='\033[1m' # Bold Text
-underline='\033[4m' # Underline Text
+set -euo pipefail
 
-# Error handling
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "${RED}Failed $*"; }
+FIREFOX_REPOSITORY="https://github.com/mozilla-firefox/firefox.git"
+FIREFOX_REVISION="${FIREFOX_REVISION:-FIREFOX_153_0_3_RELEASE}"
 
-printf "\n" &&
-printf "${bold}${GRE}Script to clone and initialize the Mozilla source tree.${c0}\n" &&
-printf "${bold}${YEL}Use the --win flag for Windows.${c0}\n" &&
-printf "${bold}${YEL}Use the --linux flag for Linux.${c0}\n" &&
-printf "${bold}${YEL}Use the --mac flag for MacOS.${c0}\n" &&
+display_help() {
+	cat <<'EOF'
+Clone Firefox with Git and bootstrap a Mercury build environment.
 
-makeWinDir () {
-	mkdir -p /c/mozilla-source/ &&
-	cd /c/mozilla-source/ &&
-	printf "\n" &&
-	printf "${YEL}Bootstrapping Mozilla Repo...\n" &&
-	printf "\n" &&
-	tput sgr0 &&
-	curl https://hg.mozilla.org/mozilla-central/raw-file/default/python/mozboot/bin/bootstrap.py -O &&
-	python3 bootstrap.py
+Usage: ./bootstrap.sh [--linux|--mac|--win]
+
+Environment variables:
+  MOZ_SRC_DIR       Firefox checkout directory (default: $HOME/firefox,
+                    or /c/mozilla-source/firefox on Windows)
+  FIREFOX_REVISION  Git tag, branch, or commit to check out
+                    (default: FIREFOX_153_0_3_RELEASE)
+EOF
 }
-case $1 in
-	--win) makeWinDir; exit 0;;
+
+platform=""
+case "${1:-}" in
+	--linux|--mac|--win) platform="${1#--}" ;;
+	--help|-h) display_help; exit 0 ;;
+	"") ;;
+	*) display_help >&2; exit 2 ;;
 esac
 
-makeLinuxDir () {
-	cd $HOME &&
-	printf "\n" &&
-	printf "${YEL}Bootstrapping Mozilla Repo...\n" &&
-	printf "\n" &&
-	tput sgr0 &&
-	curl https://hg.mozilla.org/mozilla-central/raw-file/default/python/mozboot/bin/bootstrap.py -O &&
-	python3 bootstrap.py
+if [[ -z "$platform" ]]; then
+	case "${OSTYPE:-}" in
+		msys*|cygwin*) platform="win" ;;
+		darwin*) platform="mac" ;;
+		*) platform="linux" ;;
+	esac
+fi
+
+if [[ -z "${MOZ_SRC_DIR:-}" ]]; then
+	if [[ "$platform" == "win" ]]; then
+		MOZ_SRC_DIR="/c/mozilla-source/firefox"
+	else
+		MOZ_SRC_DIR="$HOME/firefox"
+	fi
+fi
+export MOZ_SRC_DIR
+
+command -v git >/dev/null 2>&1 || {
+	echo "git is required. Install Git and run this script again." >&2
+	exit 1
 }
-case $1 in
-	--linux) makeLinuxDir; exit 0;;
+command -v python3 >/dev/null 2>&1 || {
+	echo "python3 is required. Install Python 3 and run this script again." >&2
+	exit 1
+}
+
+if [[ -e "$MOZ_SRC_DIR" && ! -d "$MOZ_SRC_DIR/.git" ]]; then
+	echo "MOZ_SRC_DIR exists but is not a Git checkout: $MOZ_SRC_DIR" >&2
+	exit 1
+fi
+
+if [[ ! -d "$MOZ_SRC_DIR/.git" ]]; then
+	mkdir -p "$(dirname "$MOZ_SRC_DIR")"
+	git clone "$FIREFOX_REPOSITORY" "$MOZ_SRC_DIR"
+fi
+
+cd "$MOZ_SRC_DIR"
+
+origin_url="$(git remote get-url origin 2>/dev/null || true)"
+case "$origin_url" in
+	https://github.com/mozilla-firefox/firefox|https://github.com/mozilla-firefox/firefox.git|git@github.com:mozilla-firefox/firefox.git) ;;
+	*)
+		echo "Refusing to modify a checkout with an unexpected origin: $origin_url" >&2
+		exit 1
+		;;
 esac
 
-makeMacDir () {
-	cd $HOME &&
-	printf "\n" &&
-	printf "${YEL}Bootstrapping Mozilla Repo...\n" &&
-	printf "\n" &&
-	tput sgr0 &&
-	curl https://hg.mozilla.org/mozilla-central/raw-file/default/python/mozboot/bin/bootstrap.py -O &&
-	python3 bootstrap.py
-}
-case $1 in
-	--mac) makeMacDir; exit 0;;
-esac
+git fetch --tags origin
+git checkout --detach "$FIREFOX_REVISION"
+./mach bootstrap --application-choice browser
 
-tput sgr0
+printf '\nFirefox is ready at %s (revision %s).\n' "$MOZ_SRC_DIR" "$FIREFOX_REVISION"
+printf 'Return to the Mercury repository and run ./setup.sh.\n'

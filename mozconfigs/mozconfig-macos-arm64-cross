@@ -8,9 +8,7 @@ ac_add_options --disable-artifact-builds
 
 # Build for MacOS
 ac_add_options --target=aarch64-apple-darwin
-ac_add_options --with-toolchain-prefix=aarch64-apple-darwin
 ac_add_options --enable-bootstrap
-CROSS_COMPILE=1
 export MOZ_INCLUDE_SOURCE_INFO=1
 
 # Optimization settings
@@ -19,29 +17,19 @@ ac_add_options --disable-debug
 ac_add_options --disable-debug-symbols
 ac_add_options --disable-debug-js-modules
 ac_add_options --disable-tests
-#ac_add_options --enable-strip
-#ac_add_options --enable-install-strip
 ac_add_options --enable-clang-plugin
 ac_add_options --enable-lto
 ac_add_options --enable-jemalloc
-ac_add_options --enable-optimize="-O3 -march=armv8.3-a+simd -mcpu=apple-m1"
+ac_add_options --enable-optimize="-O3 -mcpu=apple-m1 -ffp-contract=off"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-hardening
-#ac_add_options --disable-trace-logging
-mk_add_options MOZILLA_OFFICIAL=1
-MOZILLA_OFFICIAL=1
 export MOZILLA_OFFICIAL=1
-mk_add_options MOZ_OPTIMIZE=1
-MOZ_OPTIMIZE=1
-export MOZ_OPTIMIZE=1
 
 # Media settings
 ac_add_options --enable-sandbox
 ac_add_options --enable-raw
 ac_add_options --enable-webrtc
 ac_add_options --enable-jxl
-ac_add_options --enable-av1
-ac_add_options --enable-eme=widevine
 
 # Add-ons
 ac_add_options --allow-addon-sideload
@@ -53,14 +41,6 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --enable-geckodriver
 ac_add_options --without-wasm-sandboxed-libraries
-#ac_add_options --disable-default-browser-agent
-export MOZ_SOURCE_CHANGESET=${changeset}
-mk_add_options MOZ_CRASHREPORTER=0
-mk_add_options MOZ_DATA_REPORTING=0
-mk_add_options MOZ_SERVICES_HEALTHREPORT=0
-mk_add_options MOZ_TELEMETRY_REPORTING=
-export MOZ_CRASHREPORTER=0
-export MOZ_DATA_REPORTING=0
 export MOZ_REQUIRE_SIGNING=
 export MOZ_TELEMETRY_REPORTING=
 export MOZ_PACKAGE_JSSHELL=1
@@ -73,42 +53,25 @@ ac_add_options --with-google-safebrowsing-api-keyfile=@TOPSRCDIR@/ga
 ac_add_options --with-app-name=mercury
 ac_add_options --with-app-basename=Mercury
 ac_add_options --with-branding=browser/branding/mercury
-ac_add_options --with-l10n-base=$PWD/browser/locales/en-US
-ac_add_options --with-distribution-id=com.alex313031.mercury
-#-app=/home/alex/bin/Mercury/application.ini
+ac_add_options --with-distribution-id=com.alex313031
 
-export MOZ_MACBUNDLE_ID=${appId}
-export MOZ_MACBUNDLE_NAME="Mercury.app"
-
-# Make flags (set to number of CPU cores)
-mk_add_options MOZ_MAKE_FLAGS="-j16"
-
-# Change to actual location of SDK
-## https://github.com/bitcoin-core/apple-sdk-tools
-## https://firefox-source-docs.mozilla.org/widget/cocoa/sdks.html
-ac_add_options --with-macos-sdk=/home/alex/temp/MacOSX.sdk
+# Set MOZ_MACOS_SDK to an extracted macOS SDK when cross-compiling.
+if test -n "${MOZ_MACOS_SDK:-}"; then
+    ac_add_options --with-macos-sdk="${MOZ_MACOS_SDK}"
+fi
 
 # Autoclobber
-mk_add_options AUTOCLOBBER=1
-export AUTOCLOBBER=1
+if test -n "${MERCURY_L10N_REPACK:-}"; then
+    # Keep the compiled en-US binaries while mach changes the UI locale.
+    mk_add_options AUTOCLOBBER=
+else
+    mk_add_options AUTOCLOBBER=1
+fi
 
-# Set -Copt-level=3
-export OPT_LEVEL="3"
-ac_add_options OPT_LEVEL="3"
-export RUSTC_OPT_LEVEL="3"
+# Rust release optimization
 ac_add_options RUSTC_OPT_LEVEL="3"
 
-# Enable PGO/LTO
-export MOZ_LTO=1
-ac_add_options MOZ_LTO=1
-#export MOZ_PGO=1
-#ac_add_options MOZ_PGO=1
+# LTO is enabled above; macOS releases currently do not use PGO.
 
-# Compiler, Linker, and Rust flags
-export CFLAGS="-O3 -march=armv8.3-a+simd"
-export CPPFLAGS="-O3 -march=armv8.3-a+simd"
-export CXXFLAGS="-O3 -march=armv8.3-a+simd"
-export LDFLAGS="-Wl,-O3 -march=armv8.3-a+simd"
-#export MOZ_LTO_LDFLAGS="-Wl,-mllvm,-polly"
-export RUSTFLAGS="-C target-feature=+v8.3a -C codegen-units=1 -C target-cpu=apple-m1"
-export VERBOSE=1
+# Rust flags; --enable-optimize owns the C/C++ and linker profile.
+export RUSTFLAGS="-C target-cpu=apple-m1 -C llvm-args=-fp-contract=off"

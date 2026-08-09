@@ -1,0 +1,101 @@
+diff --git a/browser/components/customizableui/CustomizableUI.sys.mjs b/browser/components/customizableui/CustomizableUI.sys.mjs
+--- a/browser/components/customizableui/CustomizableUI.sys.mjs
++++ b/browser/components/customizableui/CustomizableUI.sys.mjs
+@@ -354,19 +354,13 @@ var CustomizableUIInternal = {
+ 
+     let navbarPlacements = [
+-      lazy.sidebarRevampEnabled ? "sidebar-button" : null,
+       "back-button",
+       "forward-button",
+       "stop-reload-button",
+-      Services.policies.isAllowed("removeHomeButtonByDefault")
+-        ? null
+-        : "home-button",
+-      "spring",
+-      "vertical-spacer",
++      "home-button",
+       "urlbar-container",
+-      "spring",
+       "downloads-button",
+-      AppConstants.MOZ_DEV_EDITION ? "developer-button" : null,
+-      lazy.ippEnabled ? "ipprotection-button" : null,
++      "developer-button",
++      "unified-extensions-button",
+       "fxa-toolbar-menu-button",
+       lazy.resetPBMToolbarButtonEnabled ? "reset-pbm-toolbar-button" : null,
+     ].filter(name => name);
+@@ -377,8 +371,5 @@ var CustomizableUIInternal = {
+         overflowable: true,
+         defaultPlacements: navbarPlacements,
+-        verticalTabsDefaultPlacements: [
+-          "firefox-view-button",
+-          "alltabs-button",
+-        ],
++        verticalTabsDefaultPlacements: ["alltabs-button"],
+         defaultCollapsed: false,
+       },
+@@ -403,9 +394,8 @@ var CustomizableUIInternal = {
+       {
+         type: CustomizableUI.TYPE_TOOLBAR,
+         defaultPlacements: [
+-          "firefox-view-button",
+           "tabbrowser-tabs",
+           "new-tab-button",
+           "alltabs-button",
+         ],
+         verticalTabsDefaultPlacements: [],
+@@ -754,16 +744,4 @@ var CustomizableUIInternal = {
+       }
+     }
+ 
+-    // Add firefox-view if not present
+-    if (currentVersion < 18) {
+-      let tabstripPlacements =
+-        gSavedState.placements[CustomizableUI.AREA_TABSTRIP];
+-      if (
+-        tabstripPlacements &&
+-        !tabstripPlacements.includes("firefox-view-button")
+-      ) {
+-        tabstripPlacements.unshift("firefox-view-button");
+-      }
+-    }
+-
+     // Unified Extensions addon button migration, which puts any browser action
+@@ -804,19 +782,5 @@ var CustomizableUIInternal = {
+         ...addonsPlacements,
+       ];
+     }
+ 
+-    if (currentVersion < 21) {
+-      // If the vertical-spacer has not yet been added, ensure its to the left of the urlbar initially
+-      let navbarPlacements = gSavedState.placements[CustomizableUI.AREA_NAVBAR];
+-      if (!navbarPlacements.includes("vertical-spacer")) {
+-        let urlbarContainerPosition =
+-          navbarPlacements.indexOf("urlbar-container");
+-        gSavedState.placements[CustomizableUI.AREA_NAVBAR].splice(
+-          urlbarContainerPosition - 1,
+-          0,
+-          "vertical-spacer"
+-        );
+-      }
+-    }
+-
+     if (currentVersion < 22) {
+@@ -878,17 +842,4 @@ var CustomizableUIInternal = {
+       return;
+     }
+ 
+-    // Remove the home button if it hasn't been used and is set to about:home
+-    if (currentVersion < 1) {
+-      let homePage = lazy.HomePage.get();
+-      if (
+-        placements.includes("home-button") &&
+-        !Services.prefs.getBoolPref(kPrefHomeButtonUsed) &&
+-        (homePage == "about:home" || homePage == "about:blank") &&
+-        Services.policies.isAllowed("removeHomeButtonByDefault")
+-      ) {
+-        placements.splice(placements.indexOf("home-button"), 1);
+-      }
+-    }
+-
+     // Remove the library button if it hasn't been used

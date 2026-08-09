@@ -1,0 +1,192 @@
+name: Rebuild Mercury Windows SFX
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: rebuild-windows-sfx-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+env:
+  FIREFOX_REPOSITORY: mozilla-firefox/firefox
+  FIREFOX_COMMIT: 0c39e9282688363f5028d0541c17784f7fa5117c
+
+jobs:
+  rebuild:
+    name: Build and verify x86 and ARM64 stubs
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out Mercury
+        uses: actions/checkout@v6
+        with:
+          path: mercury
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Check out the pinned Firefox 153 source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.FIREFOX_REPOSITORY }}
+          ref: ${{ env.FIREFOX_COMMIT }}
+          path: firefox
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: other-licenses/7zstub
+
+      - name: Apply Mercury resources to the Firefox SFX source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $patch = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\firefox-153\170-mercury-windows-sfx-branding.patch'
+          $firefox = Join-Path $env:GITHUB_WORKSPACE 'firefox'
+          $sfx = Join-Path $firefox 'other-licenses\7zstub\firefox'
+          $icon = Join-Path $env:GITHUB_WORKSPACE 'mercury\other-licenses\7zstub\firefox\setup.ico'
+
+          $actualCommit = (git -C $firefox rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $actualCommit -ne $env:FIREFOX_COMMIT) {
+            throw "Firefox checkout is $actualCommit; expected $env:FIREFOX_COMMIT."
+          }
+          git -C $firefox apply --check $patch
+          if ($LASTEXITCODE -ne 0) { throw 'The Mercury SFX patch does not apply to the pinned Firefox source.' }
+          git -C $firefox apply $patch
+          if ($LASTEXITCODE -ne 0) { throw 'Applying the Mercury SFX patch failed.' }
+          Copy-Item -LiteralPath $icon -Destination (Join-Path $sfx 'setup.ico') -Force
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Build ReleaseD stubs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $solution = Join-Path $env:GITHUB_WORKSPACE 'firefox\other-licenses\7zstub\firefox\SFXSetup.sln'
+
+          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=x86 /v:minimal
+          if ($LASTEXITCODE -ne 0) { throw 'The Win32 SFX build failed.' }
+          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=ARM64 /v:minimal
+          if ($LASTEXITCODE -ne 0) { throw 'The ARM64 SFX build failed.' }
+
+      - name: Verify and stage the rebuilt stubs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          function Assert-Equal([string] $Label, $Actual, $Expected) {
+            if ($Actual -ne $Expected) {
+              throw "$Label is '$Actual'; expected '$Expected'."
+            }
+          }
+
+          function Get-PeMachine([string] $Path) {
+            $bytes = [System.IO.File]::ReadAllBytes($Path)
+            if ($bytes.Length -lt 64 -or $bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) {
+              throw "$Path is not a valid PE executable."
+            }
+            $peOffset = [BitConverter]::ToInt32($bytes, 0x3c)
+            if ($peOffset -lt 0 -or $peOffset + 6 -gt $bytes.Length) {
+              throw "$Path has an invalid PE header offset."
+            }
+            if ([BitConverter]::ToUInt32($bytes, $peOffset) -ne 0x00004550) {
+              throw "$Path has an invalid PE signature."
+            }
+            return [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+          }
+
+          function Assert-MercurySfx([string] $Path, [uint16] $Machine) {
+            if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+              throw "Expected build output is missing: $Path"
+            }
+            if ((Get-Item -LiteralPath $Path).Length -le 0) {
+              throw "Build output is empty: $Path"
+            }
+
+            Assert-Equal 'PE machine' (Get-PeMachine $Path) $Machine
+            $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($Path)
+            Assert-Equal 'CompanyName' $version.CompanyName 'Alex313031'
+            Assert-Equal 'FileDescription' $version.FileDescription 'Mercury Browser Installer'
+            Assert-Equal 'LegalCopyright' $version.LegalCopyright 'Alex313031'
+            Assert-Equal 'ProductName' $version.ProductName 'Mercury'
+
+            $unicode = [Text.Encoding]::Unicode.GetString([System.IO.File]::ReadAllBytes($Path))
+            if (-not $unicode.Contains('Microsoft Windows 10 or newer is required.')) {
+              throw "$Path does not contain Mercury's Windows 10 minimum-version message."
+            }
+          }
+
+          $firefoxSfx = Join-Path $env:GITHUB_WORKSPACE 'firefox\other-licenses\7zstub\firefox'
+          $win32 = Join-Path $firefoxSfx 'Win32\ReleaseD\7zSD.Win32.sfx'
+          $arm64 = Join-Path $firefoxSfx 'ARM64\ReleaseD\7zSD.ARM64.sfx'
+          Assert-MercurySfx $win32 0x014c
+          Assert-MercurySfx $arm64 0xaa64
+
+          $artifactDir = Join-Path $env:GITHUB_WORKSPACE 'sfx-artifacts'
+          New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
+          Copy-Item -LiteralPath $win32 -Destination (Join-Path $artifactDir '7zSD.Win32.sfx') -Force
+          Copy-Item -LiteralPath $arm64 -Destination (Join-Path $artifactDir '7zSD.ARM64.sfx') -Force
+
+          $targets = @('7zSD.Win32.sfx', '7zSD.ARM64.sfx')
+          $hashes = @{}
+          $checksumLines = foreach ($name in $targets) {
+            $hash = (Get-FileHash -LiteralPath (Join-Path $artifactDir $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+            $hashes[$name] = $hash
+            "$hash  $name"
+          }
+          [System.IO.File]::WriteAllLines(
+            (Join-Path $artifactDir 'SHA256SUMS.txt'),
+            $checksumLines,
+            [Text.UTF8Encoding]::new($false)
+          )
+
+          $msbuildVersion = ((msbuild -version -nologo) | Select-Object -Last 1).Trim()
+          $builtAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+          $setupIcon = Join-Path $env:GITHUB_WORKSPACE 'mercury\other-licenses\7zstub\firefox\setup.ico'
+          $sfxPatch = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\firefox-153\170-mercury-windows-sfx-branding.patch'
+          $buildInfo = [ordered]@{
+            schemaVersion = 1
+            firefoxRepository = $env:FIREFOX_REPOSITORY
+            firefoxCommit = $env:FIREFOX_COMMIT
+            mercuryCommit = $env:GITHUB_SHA
+            workflowRun = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            runnerImage = $env:ImageOS
+            runnerImageVersion = $env:ImageVersion
+            msbuildVersion = $msbuildVersion
+            builtAtUtc = $builtAt
+            setupIconSha256 = (Get-FileHash -LiteralPath $setupIcon -Algorithm SHA256).Hash.ToLowerInvariant()
+            sfxPatchSha256 = (Get-FileHash -LiteralPath $sfxPatch -Algorithm SHA256).Hash.ToLowerInvariant()
+            artifacts = @(
+              [ordered]@{ name = '7zSD.Win32.sfx'; machine = 'I386'; sha256 = $hashes['7zSD.Win32.sfx'] },
+              [ordered]@{ name = '7zSD.ARM64.sfx'; machine = 'ARM64'; sha256 = $hashes['7zSD.ARM64.sfx'] }
+            )
+          }
+          $buildInfoPath = Join-Path $artifactDir 'BUILDINFO.json'
+          [System.IO.File]::WriteAllText(
+            $buildInfoPath,
+            ($buildInfo | ConvertTo-Json -Depth 5) + "`n",
+            [Text.UTF8Encoding]::new($false)
+          )
+
+      - name: Upload rebuilt SFX artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: mercury-windows-sfx-${{ github.run_id }}
+          path: sfx-artifacts/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            sfx-artifacts/7zSD.Win32.sfx
+            sfx-artifacts/7zSD.ARM64.sfx

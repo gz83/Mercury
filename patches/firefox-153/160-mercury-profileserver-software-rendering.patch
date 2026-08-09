@@ -1,0 +1,9 @@
+diff --git a/testing/profiles/profileserver/user.js b/testing/profiles/profileserver/user.js
+--- a/testing/profiles/profileserver/user.js
++++ b/testing/profiles/profileserver/user.js
+@@ -8,3 +8,5 @@ user_pref("dom.timeout.enable_budget_timer_throttling", false);
+ user_pref("dom.timeout.enable_budget_timer_throttling", false);
+ // Turn off update
+ user_pref("app.update.disabledForTesting", true);
++// Keep PGO profile generation independent of GPU and driver availability.
++user_pref("gfx.webrender.software", true);

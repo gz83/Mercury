@@ -45,38 +45,62 @@ case $1 in
 	-h) displayHelp; exit 0;;
 esac
 
-# mozilla source dir env variable
-if [ -z "${HG_SRC_DIR}" ]; then 
-    HG_SRC_DIR="$HOME/mozilla-unified"
-    export HG_SRC_DIR
-else 
-    HG_SRC_DIR="${HG_SRC_DIR}"
-    export HG_SRC_DIR
+# Firefox source directory
+DEFAULT_MOZ_SRC_DIR="$HOME/firefox"
+case "${OSTYPE:-}" in
+	msys*|cygwin*) DEFAULT_MOZ_SRC_DIR="/c/mozilla-source/firefox" ;;
+esac
+MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
+export MOZ_SRC_DIR
+MERCURY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ ! -d "${MOZ_SRC_DIR}/.git" ]; then
+	yell "Firefox Git checkout not found at ${MOZ_SRC_DIR}. Run ./bootstrap.sh first."
+	exit 1
 fi
 
-printf "\n" &&
-printf "${YEL}Copying Mercury source files over the Mozilla tree...${c0}\n" &&
+FIREFOX_BASE_COMMIT="0c39e9282688363f5028d0541c17784f7fa5117c"
+CURRENT_FIREFOX_COMMIT="$(git -C "${MOZ_SRC_DIR}" rev-parse HEAD)" ||
+	die "${RED}Unable to read the Firefox source revision.${c0}"
+if [ "${CURRENT_FIREFOX_COMMIT}" != "${FIREFOX_BASE_COMMIT}" ]; then
+	die "${RED}Expected FIREFOX_153_0_3_RELEASE (${FIREFOX_BASE_COMMIT}), found ${CURRENT_FIREFOX_COMMIT}.${c0}"
+fi
 
-cp -r -v ./app/. ${HG_SRC_DIR}/browser/app/ &&
-cp -r -v ./browser/. ${HG_SRC_DIR}/browser/ &&
-cp -r -v ./build/. ${HG_SRC_DIR}/build/ &&
-cp -r -v ./devtools/. ${HG_SRC_DIR}/devtools/ &&
-cp -r -v ./ipc/. ${HG_SRC_DIR}/ipc/ &&
-cp -r -v ./moz.build ${HG_SRC_DIR}/ &&
-cp -r -v ./netwerk/. ${HG_SRC_DIR}/netwerk/ &&
-cp -r -v ./other-licenses/. ${HG_SRC_DIR}/other-licenses/ &&
-mkdir -p -v ${HG_SRC_DIR}/policies &&
-cp -r -v ./policies/. ${HG_SRC_DIR}/policies/ &&
-cp -r -v ./toolkit/. ${HG_SRC_DIR}/toolkit/ &&
-cp -r -v ./testing/. ${HG_SRC_DIR}/testing/ &&
-cp -v ./mozconfigs/ga ${HG_SRC_DIR} &&
-cp -v ./mozconfigs/mozconfig ${HG_SRC_DIR} &&
+applyFirefoxPatches () {
+	local patch_file
+	for patch_file in "${MERCURY_DIR}"/patches/firefox-153/*.patch; do
+		if git -C "${MOZ_SRC_DIR}" apply --check "${patch_file}" 2>/dev/null; then
+			try git -C "${MOZ_SRC_DIR}" apply "${patch_file}"
+		elif git -C "${MOZ_SRC_DIR}" apply --reverse --check "${patch_file}" 2>/dev/null; then
+			printf "${YEL}%s is already applied.${c0}\n" "$(basename "${patch_file}")"
+		else
+			die "${RED}$(basename "${patch_file}") does not apply cleanly. Reset the Firefox checkout to FIREFOX_153_0_3_RELEASE and rerun setup.sh.${c0}"
+		fi
+	done
+}
+
+printf "\n" &&
+printf "${YEL}Copying Mercury source files over the Firefox tree...${c0}\n" &&
+
+cp -r -v ./app/. "${MOZ_SRC_DIR}/browser/app/" &&
+cp -r -v ./browser/. "${MOZ_SRC_DIR}/browser/" &&
+# Only these prebuilt, product-branded SFX resources are overlays. Textual
+# changes to Firefox's 7zstub source are carried by patch 170.
+cp -v ./other-licenses/7zstub/firefox/7zSD.Win32.sfx \
+	"${MOZ_SRC_DIR}/other-licenses/7zstub/firefox/7zSD.Win32.sfx" &&
+cp -v ./other-licenses/7zstub/firefox/7zSD.ARM64.sfx \
+	"${MOZ_SRC_DIR}/other-licenses/7zstub/firefox/7zSD.ARM64.sfx" &&
+cp -v ./other-licenses/7zstub/firefox/setup.ico \
+	"${MOZ_SRC_DIR}/other-licenses/7zstub/firefox/setup.ico" &&
+cp -v ./mozconfigs/ga "${MOZ_SRC_DIR}" &&
+cp -v ./mozconfigs/mozconfig "${MOZ_SRC_DIR}" &&
+applyFirefoxPatches &&
 
 copyWin () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows (Native Build) mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-win ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--win) copyWin;
@@ -86,7 +110,7 @@ copyWinCross () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows (Cross Compile) mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-win-cross ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-cross "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--cross) copyWinCross;
@@ -96,7 +120,7 @@ copySSE3 () {
 	printf "\n" &&
 	printf "${GRE}Copying SSE3 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-sse3 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-sse3 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--sse3) copySSE3;
@@ -106,7 +130,7 @@ copyWinSSE3 () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows SSE3 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-win-sse3 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-sse3 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--win-sse3) copyWinSSE3;
@@ -116,7 +140,7 @@ copySSE41 () {
 	printf "\n" &&
 	printf "${GRE}Copying SSE4.1 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-sse4 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-sse4 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--sse4) copySSE41;
@@ -126,7 +150,7 @@ copyWinSSE41 () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows SSE4.1 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-win-sse4 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-sse4 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--win-sse4) copyWinSSE41;
@@ -136,8 +160,7 @@ copyAVX2 () {
 	printf "\n" &&
 	printf "${GRE}Copying AVX2 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-avx2 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-avx2 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--avx2) copyAVX2;
@@ -147,8 +170,7 @@ copyWinAVX2 () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows AVX2 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-win-avx2 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-avx2 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--win-avx2) copyWinAVX2;
@@ -158,8 +180,7 @@ copyWinCrossAVX2 () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows AVX2 (Cross Compile) mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-win-avx2-cross ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-avx2-cross "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--cross-avx2) copyWinCrossAVX2;
@@ -169,7 +190,7 @@ copyDebug () {
 	printf "\n" &&
 	printf "${GRE}Copying debug mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-debug ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-debug "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--debug) copyDebug;
@@ -179,7 +200,7 @@ copyWinDebug () {
 	printf "\n" &&
 	printf "${GRE}Copying Windows debug mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-win-debug ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-win-debug "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--win-debug) copyWinDebug;
@@ -189,8 +210,7 @@ copyMac () {
 	printf "\n" &&
 	printf "${GRE}Copying MacOS x64 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-macos-x64 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-macos-x64 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--mac) copyMac;
@@ -200,7 +220,7 @@ copyMacArm () {
 	printf "\n" &&
 	printf "${GRE}Copying MacOS ARM64 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-macos-arm64 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-macos-arm64 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--mac-arm) copyMacArm;
@@ -210,8 +230,7 @@ copyMacCross () {
 	printf "\n" &&
 	printf "${GRE}Copying MacOS x64 (Cross Compile) mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-macos-x64-cross ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-macos-x64-cross "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--mac-cross) copyMacCross;
@@ -221,7 +240,7 @@ copyMacArmCross () {
 	printf "\n" &&
 	printf "${GRE}Copying MacOS ARM64 (Cross Compile) mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/mozconfig-macos-arm64-cross ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-macos-arm64-cross "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--mac-arm-cross) copyMacArmCross;
@@ -231,8 +250,7 @@ copyLinuxArm64 () {
 	printf "\n" &&
 	printf "${GRE}Copying Linux ARM64 mozconfig${c0}\n" &&
 	printf "\n" &&
-	cp -v mozconfigs/context.py ${HG_SRC_DIR}/python/mozbuild/mozbuild/frontend/ &&
-	cp -v mozconfigs/mozconfig-arm64 ${HG_SRC_DIR}/mozconfig
+	cp -v mozconfigs/mozconfig-arm64 "${MOZ_SRC_DIR}/mozconfig"
 }
 case $1 in
 	--arm64) copyLinuxArm64;
@@ -243,19 +261,6 @@ esac
 
 printf "\n" &&
 printf "${GRE}Done!\n" &&
-printf "\n" &&
-printf "${YEL}Setting aliases\n" &&
-
-export EDITOR=nano &&
-
-export VISUAL=nano &&
-
-alias hgpurge='hg purge' &&
-
-alias hgrebase='hg update --clean' &&
-
-printf "\n" &&
-printf "${YEL}Look in this file to see the aliases and what they're for.\n" &&
 printf "\n" &&
 printf "${GRE}Enjoy Mercury!\n" &&
 tput sgr0

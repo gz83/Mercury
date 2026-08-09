@@ -1,0 +1,19 @@
+diff --git a/build/moz.configure/lto-pgo.configure b/build/moz.configure/lto-pgo.configure
+--- a/build/moz.configure/lto-pgo.configure
++++ b/build/moz.configure/lto-pgo.configure
+@@ -415,11 +415,11 @@ def lto(
+     # Tell LTO not to inline functions above a certain size, to mitigate
+     # binary size growth while still getting good performance.
+     # (For hot functions, PGO will put a multiplier on this limit.)
+     if c_compiler.type == "clang-cl":
+-        ldflags.append("-mllvm:-import-instr-limit=10")
++        ldflags.append("-mllvm:-import-instr-limit=30")
+     elif target.kernel == "Darwin":
+-        ldflags.append("-Wl,-mllvm,-import-instr-limit=10")
++        ldflags.append("-Wl,-mllvm,-import-instr-limit=30")
+     elif c_compiler.type == "clang":
+-        ldflags.append("-Wl,-plugin-opt=-import-instr-limit=10")
++        ldflags.append("-Wl,-plugin-opt=-import-instr-limit=30")
+ 
+     # If we're using the new pass manager, we can also enable the new PM
+     # during LTO. Further we can use the resulting size savings to increase

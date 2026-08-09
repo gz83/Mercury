@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_strip_nondeterminism:
+	dh_strip_nondeterminism -Xxpi
+
+override_dh_install:
+	dh_install
+	install -m 0755 debian/mercury-launcher debian/mercury-browser/usr/bin/mercury-browser
+
+override_dh_strip:
+	:

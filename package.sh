@@ -27,23 +27,22 @@ case $1 in
 	--help) displayHelp; exit 0;;
 esac
 
-# mozilla source dir env variable
-if [ -z "${HG_SRC_DIR}" ]; then 
-    HG_SRC_DIR="$HOME/mozilla-unified"
-    export HG_SRC_DIR
-else 
-    HG_SRC_DIR="${HG_SRC_DIR}"
-    export HG_SRC_DIR
-fi
+# Firefox source directory
+DEFAULT_MOZ_SRC_DIR="$HOME/firefox"
+case "${OSTYPE:-}" in
+	msys*|cygwin*) DEFAULT_MOZ_SRC_DIR="/c/mozilla-source/firefox" ;;
+esac
+MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
+export MOZ_SRC_DIR
 
 printf "\n" &&
 printf "${YEL}Packaging Mercury..\n" &&
 printf "${GRE}\n" &&
 
-cd ${HG_SRC_DIR} &&
+cd "${MOZ_SRC_DIR}" &&
 
 ./mach package -v &&
 
 printf "${GRE}${bold}Done. ${YEL}${bold}You can find a tarball package of the release in:\n" &&
-printf "${PWD}/obj.../dist/Mercury....tar.bz2\n" &&
+printf "${PWD}/obj.../dist/mercury....tar.xz\n" &&
 tput sgr0

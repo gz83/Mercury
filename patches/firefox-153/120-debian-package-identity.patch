@@ -1,0 +1,122 @@
+diff --git a/python/mozbuild/mozbuild/mach_commands.py b/python/mozbuild/mozbuild/mach_commands.py
+--- a/python/mozbuild/mozbuild/mach_commands.py
++++ b/python/mozbuild/mozbuild/mach_commands.py
+@@ -2863,6 +2863,18 @@
+     required=True,
+     help="The release being shipped. Used to disambiguate nightly/try etc.",
+ )
++@CommandArgument(
++    "--package-name",
++    type=str,
++    default=None,
++    help="Override the package name derived from application.ini",
++)
++@CommandArgument(
++    "--install-path",
++    type=str,
++    default=None,
++    help="Override the package installation path derived from application.ini",
++)
+ def repackage_deb(
+     command_context,
+     input,
+@@ -2875,6 +2887,8 @@
+     templates,
+     product,
+     release_type,
++    package_name,
++    install_path,
+ ):
+     if not os.path.exists(input):
+         print("Input file does not exist: %s" % input)
+@@ -2899,6 +2913,8 @@
+         release_type,
+         FluentLocalization,
+         FluentResourceLoader,
++        package_name,
++        install_path,
+     )
+ 
+ 
+diff --git a/python/mozbuild/mozbuild/repackaging/deb.py b/python/mozbuild/mozbuild/repackaging/deb.py
+--- a/python/mozbuild/mozbuild/repackaging/deb.py
++++ b/python/mozbuild/mozbuild/repackaging/deb.py
+@@ -84,6 +84,8 @@
+     release_type,
+     fluent_localization,
+     fluent_resource_loader,
++    package_name=None,
++    install_path=None,
+ ):
+     if not tarfile.is_tarfile(infile):
+         raise Exception("Input file %s is not a valid tarfile." % infile)
+@@ -106,6 +108,8 @@
+             _DEB_ARCH[arch],
+             pkg_version,
+             product=product,
++            package_name=package_name,
++            install_path=install_path,
+         )
+         build_variables["DEPENDS"] = "${shlibs:Depends},"
+         build_variables["CHANGELOG_DATE"] = format_datetime(
+diff --git a/python/mozbuild/mozbuild/repackaging/utils.py b/python/mozbuild/mozbuild/repackaging/utils.py
+--- a/python/mozbuild/mozbuild/repackaging/utils.py
++++ b/python/mozbuild/mozbuild/repackaging/utils.py
+@@ -88,5 +88,7 @@
+     product="",
+     build_number="1",
++    package_name=None,
++    install_path=None,
+ ):
+     """
+     Massage the application.ini info and other metadata into a dict suitable for passing into packaging templates
+@@ -100,6 +102,10 @@
+         pkg_name = (
+             f"{application_ini_data['remoting_name'].lower()}{package_name_suffix}"
+         )
++    if package_name is not None:
++        pkg_name = f"{package_name}{package_name_suffix}"
++    if install_path is not None:
++        pkg_install_path = install_path
+     timestamp = datetime.strptime(application_ini_data["build_id"], "%Y%m%d%H%M%S")
+ 
+     return {
+diff --git a/python/mozbuild/mozbuild/test/repackaging/test_utils.py b/python/mozbuild/mozbuild/test/repackaging/test_utils.py
+--- a/python/mozbuild/mozbuild/test/repackaging/test_utils.py
++++ b/python/mozbuild/mozbuild/test/repackaging/test_utils.py
+@@ -302,6 +302,35 @@
+         }
+ 
+ 
++def test_get_build_variables_package_identity_overrides():
++    build_variables = utils.get_build_variables(
++        {
++            "name": "Mercury",
++            "display_name": "Mercury",
++            "vendor": "Mercury",
++            "remoting_name": "com.alex313031.mercury",
++            "build_id": "20260809000000",
++        },
++        "amd64",
++        "153.0.3~build1",
++        package_name="mercury-browser",
++        install_path="usr/lib/mercury",
++    )
++
++    assert build_variables["PKG_NAME"] == "mercury-browser"
++    assert build_variables["PKG_INSTALL_PATH"] == "usr/lib/mercury"
++    assert build_variables["REMOTING_NAME"] == "com.alex313031.mercury"
++
++    langpack_variables = utils.get_build_variables(
++        _APPLICATION_INI_CONTENT_DATA,
++        "all",
++        "153.0.3~build1",
++        package_name_suffix="-l10n-zh-cn",
++        package_name="mercury-browser",
++    )
++    assert langpack_variables["PKG_NAME"] == "mercury-browser-l10n-zh-cn"
++
++
+ def test_copy_plain_config(monkeypatch):
+     def mock_listdir(dir):
+         assert dir == "/template_dir"

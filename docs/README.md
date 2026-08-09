@@ -1,11 +1,13 @@
-## Mercury Infrastructure (Infra) <img src="https://github.com/Alex313031/Mercury-Win7/blob/main/logos/build_light.svg#gh-dark-mode-only"> <img src="https://github.com/Alex313031/Mercury-Win7/blob/main/logos/build_dark.svg#gh-light-mode-only">
+# Mercury documentation
 
-&nbsp;&nbsp;This dir contains docs and files related to rebasing/building Mercury and Mozilla Infrastructure.
-
- - The [BUGS.md](BUGS.md) file lists bugs and fixes.
- - The [BUILDING.md](BUILDING.md) file explains the build process.
- - The [DEBUGGING.md](DEBUGGING.md) file has cmdline flags and other info for testing, debugging, and web development with Mercury.
- - The [DEPS.md](DEPS.md) file lists prerequisites for building and running Mercury.
- - The [PATCHES.md](PATCHES.md) file has a list of patches and changes.
-
-<img src="https://github.com/Alex313031/Mercury-Win7/blob/main/logos/geckoview.svg" width="144">
+- [BUILDING.md](BUILDING.md) describes source preparation, building, and Linux
+  packaging.
+- [GIT_SETUP.md](GIT_SETUP.md) documents the Firefox Git checkout and revision
+  workflow.
+- [PATCHES.md](PATCHES.md) is the Firefox 153 patch and overlay manifest.
+- [LOCALIZATION.md](LOCALIZATION.md) documents the localization audit and
+  reproducible localized-package and language-pack release workflows.
+- [PREFERENCES.md](PREFERENCES.md) records the Firefox 153 preference audit and
+  migration decisions.
+- [DEBUGGING.md](DEBUGGING.md) lists current runtime debugging options and
+  resources.

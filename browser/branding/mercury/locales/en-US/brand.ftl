@@ -23,5 +23,5 @@
 # This brand name can be used in messages where the product name needs to
 # remain unchanged across different versions (Nightly, Beta, etc.).
 -brand-product-name = Mercury
--vendor-short-name = Mercury
+-vendor-short-name = Alex313031
 trademarkInfo = { "Mercury logos are copyrights of Alex313031." }

@@ -1,0 +1,34 @@
+diff --git a/browser/base/content/default-bookmarks.html b/browser/base/content/default-bookmarks.html
+--- a/browser/base/content/default-bookmarks.html
++++ b/browser/base/content/default-bookmarks.html
+@@ -9,6 +9,8 @@
+ #define mdn_icon data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABgElEQVR4AWPouPiRpmjUAjgatSBj+aG0OVuyVhymsgWl2y475zXySikwwIC4lpFDVk3avG0BrXP9mmeV7bhCvgXuxW3M7JwMeAGfpByZFpjHFzAQB2KmrSfZAtuMKgaiAZ+MUuLc7SRY4FbYwkA60HAJiJm8uubQAwIWeJV1MlAAOAREHDJrcFqQMG+ngIK6oKyykLwqAyMjeXZwiUjgtKD+yGMIwyGzmoGBTAs4hcXrgObgi4OiVkpCiUtYov7YU5wW1B194t0ww69ldvjktYouwWRYIGdkQ1Q+iJ28hp2Xn7B5zKzIPAlNw6S52wlbkL3mJJecOq+CBqeIJC6TjUJTMlcdz9lwLmriSuPgJBVbj/D+5SSXRequQVhNN4nIoEJhV77jKgs7B6bprJw85XtuU8GCpNlbSS3gSA4ii4QiTAvElDWpWeH41kxg5eZDSypUrtFKd1zTcA1EpHRDS5rUyQEts+VN7JjYOGR0TWhY6RdsOhc/Y9NoswUJjVoAAE+h555Rgcg2AAAAAElFTkSuQmCC
+ 
+ #define addon_icon data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABOFBMVEUAAAAAzdwAydcAyNgA//8AzOYAydcAyNgAyNgA2NgAytoAzNkAytgAydgA29sA0egAyNgAyNgA//8AyNgAydgA//8Ay9cAydcAytkAz90Ay9gA1eoAydgAytsAyNgAytgAydkAydgAydgAyNgAydgAyNcAy9oAydgA//8AytsAy9kAytkAyNgAydgAydkAy9kAzP8AydgAydgAydgAz98AzN0AyNcAyNsAydcAydgAydgAydcAytgAytcAydcAydcAytcAydcAyNcAydcAy9gAztgAydcAydgAzOAAydcAyNgAyNgAytwAyNcAyNgAy9wAyNcAyNcAyNgAydgAyNcAydcAydgA0uEAydkAyNgAyeQA4+MAyNgAydkAzN0AyNsA1f8AyNgAydgAydcA1eMAydgAydcAyNdj6PGJAAAAZ3RSTlMAJFpBAQqm8qwNPiiPygcLv8QEw5cDQMA1JU4MwiuDbl/+6+m4+0XLAj9KePz9cjYFvervEA/IDsfFr+xcgeaOYIDo+ica1OMZ9bXlHe73LM3M35itxs8Rf5ATCbFeHjgGttC5ErzO3WvwaAAAAWxJREFUOMt9kudCwkAQhFcITQWCoaggiBqxoaixYUVsYMMGCmLXff838LIXCJAL84fvmCHsTg4AYMDhlIDkcnu8Po4w6BjiIA0joj+gY1BmGKLEiMIwHNFR9xGjuh8jpMQoYZjRGBGOA8QTHDEUB4hynABwcEqCT8GW2DNSnCYBnJzSoSk0NT2jcphlM/rRXpk5NkRgfmFxSWBml6MrOWNlWBUEEmDKtyYIrGttP66gSP4Nww8mUKzNLd5/zHaJbb1Tl9xnzR2WcGM/5QE8BLvJvf0Dc4HDo8IxUVECL5Vywv7s9Mzwz/WLcFHSsWy8w0sa9+qa/JtbOlUY3mnGLbjnCz9Q4JEfnhCrNb5nXi3w754p8MIPKVWpt6psGJ+vFJBbBUO3GlozzYdsSmCV1NlntiTnegNvPQ29Wx7h7fKrEUvg47PD/6oLpgh8m7//AZEav4b/J/bbb75SAzvR3crY+6y8fLGsQV9ZSvwHF4LQIhDjT+8AAAAASUVORK5CYII=
++#define mercury_icon data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAC4jAAAuIwF4pT92AAABV0lEQVQ4y6WTMU/CUBSFv762mhQ3SlDgKcbGhB/BH9BEE2fiahhZ1RGd3YirYWZzMHHjR5AYSdBChVA3aaK0xKU1FY0leLb7cs+57753jsIccvajARwCe0ApPO4At8C9Iy033q/MkY+Aa8AkGVeOtGpajHwBnALoviBrGxivKwB46Q9G0mOqzeICBoAWkisROddPsXljoj9o38YVdn2ej12cwiQ6SgMo4c5PgJnrp9g5X//z3t36MBJxgS0BVABT9wXFRiZx8WIjg+4LwneqCKAMkLUN1IGaKKAOVLK2EZVlEX3V2ssqiyLWWxL8EyI0CW8b7wuTYr0dAbQBRtIjyAeJ5CAfMJJeVLYF0ATcqTajVx0nCvSq48hQLtAUjrQ8oAbgFCZ060P87WD6Y7IMZjEPANQcaXnKkla+dKR1tkyYXODEkVbr1zTG4nwA7M/F+Q5ohSt/4RMxqYGN4TbL9gAAAABJRU5ErkJggg==
++
+ <!-- This Source Code Form is subject to the terms of the Mozilla Public
+    - License, v. 2.0. If a copy of the MPL was not distributed with this
+    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+@@ -29,16 +31,11 @@
+ 
+ <dl><p>
+ #ifndef NIGHTLY_BUILD
+-    <dt><h3 data-l10n-id="default-bookmarks-firefox-heading">default-bookmarks-firefox-heading</h3></dt>
++    <dt><h3 personal_toolbar_folder="true" data-l10n-id="default-bookmarks-toolbarfolder">default-bookmarks-toolbarfolder</h3></dt>
++    <dd data-l10n-id="default-bookmarks-toolbarfolder-description">default-bookmarks-toolbarfolder-description</dd>
+         <dl><p>
+-            <dt><a href="https://support.mozilla.org/products/firefox" icon="@firefox_icon@" data-l10n-id="default-bookmarks-firefox-get-help">default-bookmarks-firefox-get-help</a></dt>
+-            <dt><a href="https://support.mozilla.org/kb/customize-firefox-controls-buttons-and-toolbars?utm_source=firefox-browser&utm_medium=default-bookmarks&utm_campaign=customize" icon="@firefox_icon@" data-l10n-id="default-bookmarks-firefox-customize">default-bookmarks-firefox-customize</a></dt>
+-#ifdef EARLY_BETA_OR_EARLIER
+-            <dt><a href="https://www.mozilla.org/contribute/?utm_medium=firefox-desktop&utm_source=bookmarks-toolbar&utm_campaign=new-users-beta&utm_content=-global" icon="@mozilla_icon@" data-l10n-id="default-bookmarks-firefox-community">default-bookmarks-firefox-community</a></dt>
+-#else
+-            <dt><a href="https://www.mozilla.org/contribute/" icon="@mozilla_icon@" data-l10n-id="default-bookmarks-firefox-community">default-bookmarks-firefox-community</a></dt>
+-#endif
+-            <dt><a href="https://www.mozilla.org/about/" icon="@mozilla_icon@" data-l10n-id="default-bookmarks-firefox-about">default-bookmarks-firefox-about</a></dt>
++            <dt><a href="https://thorium.rocks/mercury" icon="@mercury_icon@">Mercury Website</a></dt>
++            <dt><a href="about:config">about:config</a></dt>
+         </dl><p>
+ #else
+     <dt><h3 data-l10n-id="default-bookmarks-nightly-heading">default-bookmarks-nightly-heading</h3></dt>
+

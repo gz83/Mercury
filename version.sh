@@ -2,64 +2,53 @@
 
 # Copyright (c) 2024 Alex313031.
 
-YEL='\033[1;33m' # Yellow
-CYA='\033[1;96m' # Cyan
-RED='\033[1;31m' # Red
-GRE='\033[1;32m' # Green
-c0='\033[0m' # Reset Text
-bold='\033[1m' # Bold Text
-underline='\033[4m' # Underline Text
+set -euo pipefail
 
-# Error handling
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "${RED}Failed $*"; }
+DEFAULT_MOZ_SRC_DIR="$HOME/firefox"
+case "${OSTYPE:-}" in
+	msys*|cygwin*) DEFAULT_MOZ_SRC_DIR="/c/mozilla-source/firefox" ;;
+esac
+MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
+FIREFOX_REVISION="${FIREFOX_REVISION:-FIREFOX_153_0_3_RELEASE}"
+export MOZ_SRC_DIR FIREFOX_REVISION
 
-# --help
-displayHelp () {
-	printf "\n" &&
-	printf "${bold}${GRE}Script to Rebase/Sync the Mozilla repo.${c0}\n" &&
-	printf "\n"
+display_help() {
+	cat <<'EOF'
+Restore the Firefox checkout and sync it to Mercury's stable base.
+
+Usage: ./version.sh
+
+Set MOZ_SRC_DIR to choose the Firefox checkout and FIREFOX_REVISION to
+override the default release tag (FIREFOX_153_0_3_RELEASE).
+
+WARNING: tracked and untracked changes in the Firefox checkout are removed.
+EOF
 }
-case $1 in
-	--help) displayHelp; exit 0;;
+
+case "${1:-}" in
+	--help|-h) display_help; exit 0 ;;
+	"") ;;
+	*) display_help >&2; exit 2 ;;
 esac
 
-# mozilla source dir env variable
-if [ -z "${HG_SRC_DIR}" ]; then 
-    HG_SRC_DIR="$HOME/mozilla-unified"
-    export HG_SRC_DIR
-else 
-    HG_SRC_DIR="${HG_SRC_DIR}"
-    export HG_SRC_DIR
+if [[ ! -d "$MOZ_SRC_DIR/.git" ]]; then
+	echo "Firefox Git checkout not found at $MOZ_SRC_DIR. Run ./bootstrap.sh first." >&2
+	exit 1
 fi
 
-printf "\n" &&
-printf "${bold}${GRE}Script to Rebase/Sync Mozilla repo.${c0}\n" &&
-printf "\n" &&
-printf "${YEL}Rebasing/Syncing with mozilla-unified Mercurial repository...${c0}\n" &&
+cd "$MOZ_SRC_DIR"
+origin_url="$(git remote get-url origin 2>/dev/null || true)"
+case "$origin_url" in
+	https://github.com/mozilla-firefox/firefox|https://github.com/mozilla-firefox/firefox.git|git@github.com:mozilla-firefox/firefox.git) ;;
+	*) echo "Refusing to clean a checkout with an unexpected origin: $origin_url" >&2; exit 1 ;;
+esac
 
-MERCURY_BRANCH="c6f0209c79239408bef9b3c98e9c729dcf20ec0c"
-export MERCURY_BRANCH &&
+printf 'Syncing Firefox to %s...\n' "$FIREFOX_REVISION"
+git fetch --tags origin
+git reset --hard
+git clean -fd
+git checkout --detach "$FIREFOX_REVISION"
+./mach clobber
+./mach bootstrap --application-choice browser
 
-cd ${HG_SRC_DIR} &&
-
-rm -r -f ./obj-* &&
-
-hg purge &&
-
-hg pull &&
-
-printf "\n" &&
-printf "${GRE}Checking out the ${MERCURY_BRANCH} branch...${c0}\n" &&
-
-hg update --clean -C $MERCURY_BRANCH &&
-
-printf "\n" &&
-printf "${GRE}Running \`./mach bootstrap\`...${c0}\n" &&
-
-./mach bootstrap &&
-
-printf "\n" &&
-printf "${GRE}Done! ${YEL}You can now run ./setup.sh\n" &&
-tput sgr0
+printf '\nDone. Return to the Mercury repository and run ./setup.sh.\n'

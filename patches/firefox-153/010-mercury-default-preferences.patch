@@ -1,0 +1,130 @@
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -3648,3 +3648,126 @@ pref("distribution.mozillaonline.ignore", true);
+ #ifdef XP_MACOSX
+   pref("browser.macAppMenu.setAsDefaultShown", false);
+ #endif
++
++// Mercury product defaults. Keep this block at the end so these distribution
++// defaults override Firefox defaults loaded earlier in this file.
++
++// Add-on installation. This deliberately weakens Firefox's signature checks;
++// see docs/PREFERENCES.md before changing or shipping these defaults.
++// Mercury language packs are published with Mercury releases, not fetched
++// from Firefox's AMO language-tools endpoint.
++pref("extensions.getAddons.langpacks.url", "");
++pref("extensions.langpacks.signatures.required", false);
++pref("xpinstall.signatures.required", false);
++
++// Updates, startup, and shell integration.
++pref("app.update.auto", false);
++pref("app.update.langpack.enabled", false);
++pref("browser.shell.checkDefaultBrowser", false);
++pref("browser.shell.skipDefaultBrowserCheckOnFirstRun", false);
++pref("browser.shell.didSkipDefaultBrowserCheckOnFirstRun", true);
++pref("browser.shell.setDefaultPDFHandler", false);
++pref("browser.startup.page", 3);
++pref("browser.warnOnQuitShortcut", false);
++
++// Privacy, telemetry, studies, and discovery.
++pref("privacy.donottrackheader.enabled", true);
++pref("privacy.globalprivacycontrol.enabled", true);
++pref("toolkit.telemetry.enabled", false);
++pref("toolkit.telemetry.archive.enabled", false);
++pref("toolkit.telemetry.shutdownPingSender.enabled", false);
++pref("toolkit.telemetry.firstShutdownPing.enabled", false);
++pref("toolkit.telemetry.newProfilePing.enabled", false);
++pref("toolkit.telemetry.updatePing.enabled", false);
++pref("toolkit.telemetry.bhrPing.enabled", false);
++pref("browser.newtabpage.activity-stream.telemetry", false);
++pref("browser.search.serpEventTelemetryCategorization.enabled", false);
++pref("app.normandy.enabled", false);
++pref("browser.discovery.enabled", false);
++pref("browser.discovery.containers.enabled", false);
++
++// New Tab and sponsored content. ActivityStream dynamically supplies these
++// defaults, but preserves defaults registered here by the application.
++pref("browser.newtabpage.activity-stream.default.sites", "https://addons.mozilla.org,https://www.youtube.com/,https://www.facebook.com/,https://www.wikipedia.org/,https://www.reddit.com/");
++pref("browser.newtabpage.activity-stream.discoverystream.enabled", false);
++pref("browser.newtabpage.activity-stream.discoverystream.readTime.enabled", false);
++pref("browser.newtabpage.activity-stream.feeds.section.highlights", false);
++pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
++pref("browser.newtabpage.activity-stream.feeds.system.topstories", false);
++pref("browser.newtabpage.activity-stream.showSponsored", false);
++pref("browser.newtabpage.activity-stream.system.showSponsored", false);
++pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
++pref("browser.newtabpage.activity-stream.topSitesRows", 2);
++pref("browser.topsites.contile.enabled", false);
++
++// Browser UI and interaction defaults.
++pref("browser.aboutConfig.showWarning", false);
++pref("browser.altClickSave", true);
++pref("browser.backspace_action", 0);
++pref("browser.menu.showViewImageInfo", true);
++pref("browser.toolbars.bookmarks.visibility", "always");
++pref("browser.urlbar.suggest.yelp", false);
++pref("browser.urlbar.trimURLs", false);
++pref("general.autoScroll", true);
++#if defined(XP_LINUX)
++  pref("widget.gtk.overlay-scrollbars.enabled", false);
++#endif
++
++// Tabs and session restore.
++pref("browser.sessionstore.max_tabs_undo", 255);
++pref("browser.sessionstore.max_windows_undo", 32);
++pref("browser.sessionstore.restore_hidden_tabs", true);
++pref("browser.tabs.allow_transparent_browser", true);
++pref("browser.tabs.tabClipWidth", 100);
++pref("browser.tabs.tabMinWidth", 50);
++pref("browser.tabs.unloadOnLowMemory", true);
++
++// Rendering, media, and web platform features.
++pref("general.useragent.compatMode.firefox", true);
++pref("layers.acceleration.force-enabled", true);
++pref("image.jxl.enabled", true);
++pref("media.eme.enabled", true);
++pref("layout.css.grid-template-masonry-value.enabled", true);
++
++// Mercury/Betterfox performance defaults retained after comparison with the
++// Firefox 153 owners in StaticPrefList.yaml and all.js.
++pref("nglayout.initialpaint.delay", 0);
++pref("nglayout.initialpaint.delay_in_oopif", 0);
++pref("content.notify.interval", 100000);
++pref("gfx.canvas.accelerated.cache-size", 512);
++pref("gfx.content.skia-font-cache-size", 20);
++pref("media.memory_cache_max_size", 65536);
++pref("media.cache_readahead_limit", 7200);
++pref("media.cache_resume_threshold", 3600);
++pref("image.mem.decode_bytes_at_a_time", 32768);
++pref("network.buffer.cache.size", 262144);
++pref("network.buffer.cache.count", 128);
++pref("network.http.max-connections", 1800);
++pref("network.http.max-persistent-connections-per-server", 10);
++pref("network.http.max-urgent-start-excessive-connections-per-host", 5);
++pref("network.websocket.max-connections", 400);
++pref("network.http.pacing.requests.enabled", false);
++pref("network.dnsCacheEntries", 10000);
++pref("network.dnsCacheExpiration", 86400);
++pref("network.ssl_tokens_cache_capacity", 20480);
++pref("network.http.speculative-parallel-limit", 0);
++pref("network.dns.disablePrefetch", true);
++pref("network.prefetch-next", false);
++
++// Sync registration. False means the corresponding preference remains local.
++pref("services.sync.prefs.sync.browser.discovery.enabled", false);
++pref("services.sync.prefs.sync.browser.firefox-view.feature-tour", false);
++pref("services.sync.prefs.sync.browser.newtabpage.activity-stream.showSponsored", false);
++pref("services.sync.prefs.sync.browser.newtabpage.activity-stream.showSponsoredTopSites", false);
++pref("services.sync.prefs.sync.browser.newtabpage.activity-stream.feeds.section.topstories", false);
++pref("services.sync.prefs.sync.browser.newtabpage.activity-stream.section.topstories.rows", false);
++pref("services.sync.prefs.sync.browser.newtabpage.activity-stream.feeds.section.highlights", false);
++
++// Mozilla account product promotions.
++pref("identity.fxaccounts.toolbar.defaultVisible", false);
++pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.monitorEnabled", false);
++pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.relayEnabled", false);
++pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.vpnEnabled", false);
++
++// Expose the experimental-preferences DevTools button in official builds too.
++pref("devtools.command-button-experimental-prefs.enabled", true);

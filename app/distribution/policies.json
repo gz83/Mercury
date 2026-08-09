@@ -1,0 +1,16 @@
+{
+  "policies": {
+    "Extensions": {
+      "Install": [
+        "https://addons.mozilla.org/firefox/downloads/file/4940584/ublock_origin-1.73.0.xpi"
+      ]
+    },
+    "SearchEngines": {
+      "Remove": [
+        "Bing",
+        "Amazon.com",
+        "eBay"
+      ]
+    }
+  }
+}
