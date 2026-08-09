@@ -22,15 +22,17 @@ Mercury, and the minimum-system message to Microsoft Windows 10 or newer.
 
 <!-- BEGIN GENERATED SFX BUILD INFO -->
 The current executables identify themselves as 7-Zip Self-extracting Archive
-18.05 and were built on 2024-09-07. They preserve Mercury's installer identity,
-but they predate the Firefox 153 source baseline. Treat them as transitional
-release inputs until they have been regenerated from the patched Firefox 153
-tree. Do not claim a Firefox 153 rebuild solely from their location here.
+18.05 and were rebuilt from the patched Firefox 153 source tree on 2026-08-09.
+The build used Firefox commit
+`0c39e9282688363f5028d0541c17784f7fa5117c`, Mercury commit
+`b80dd4d4b976cfb4787cc722352dfe00fb1add79`, MSBuild 17.14.51.32402, and
+Windows SDK 10.0.22621.0. The corresponding GitHub Actions run is
+https://github.com/gz83/Mercury/actions/runs/31299823531.
 
-Current transitional input hashes:
+Current checked-in executable hashes:
 
-    fea8007660a2071abda5b135e43bf6c3b4582a37242d507abd3b44ace5bfc408  7zSD.ARM64.sfx
-    ca0f0f0d1281ca18593e39d0b84b0ac4722da654e64d25c2f64c5bc622ee46df  7zSD.Win32.sfx
+    76050b1dc74e7a8daae13fdac18c0c3280547136e29a4c2a45790870c89ac247  7zSD.Win32.sfx
+    a3d648e42be18d709256bc3feadb1de1785c02337d01dc1a9b0d9053ac0c3c4e  7zSD.ARM64.sfx
 <!-- END GENERATED SFX BUILD INFO -->
 
 Rebuild procedure
