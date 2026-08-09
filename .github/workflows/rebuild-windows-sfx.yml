@@ -16,6 +16,7 @@ permissions:
 env:
   FIREFOX_REPOSITORY: mozilla-firefox/firefox
   FIREFOX_COMMIT: 0c39e9282688363f5028d0541c17784f7fa5117c
+  WINDOWS_SDK_VERSION: 10.0.22621.0
 
 jobs:
   rebuild:
@@ -74,10 +75,16 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $solution = Join-Path $env:GITHUB_WORKSPACE 'firefox\other-licenses\7zstub\firefox\SFXSetup.sln'
+          $sdkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Include'
+          $sdkHeader = Join-Path $sdkRoot "$env:WINDOWS_SDK_VERSION\um\winnt.h"
+          if (-not (Test-Path -LiteralPath $sdkHeader -PathType Leaf)) {
+            throw "Required Windows SDK $env:WINDOWS_SDK_VERSION is unavailable at $sdkHeader."
+          }
+          $sdkProperty = "/p:WindowsTargetPlatformVersion=$env:WINDOWS_SDK_VERSION"
 
-          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=x86 /v:minimal
+          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=x86 $sdkProperty /v:minimal
           if ($LASTEXITCODE -ne 0) { throw 'The Win32 SFX build failed.' }
-          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=ARM64 /v:minimal
+          msbuild $solution /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=ARM64 $sdkProperty /v:minimal
           if ($LASTEXITCODE -ne 0) { throw 'The ARM64 SFX build failed.' }
 
       - name: Verify and stage the rebuilt stubs
@@ -164,6 +171,7 @@ jobs:
             runnerImage = $env:ImageOS
             runnerImageVersion = $env:ImageVersion
             msbuildVersion = $msbuildVersion
+            windowsSdkVersion = $env:WINDOWS_SDK_VERSION
             builtAtUtc = $builtAt
             setupIconSha256 = (Get-FileHash -LiteralPath $setupIcon -Algorithm SHA256).Hash.ToLowerInvariant()
             sfxPatchSha256 = (Get-FileHash -LiteralPath $sfxPatch -Algorithm SHA256).Hash.ToLowerInvariant()
