@@ -54,7 +54,7 @@ MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
 export MOZ_SRC_DIR
 MERCURY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ ! -d "${MOZ_SRC_DIR}/.git" ]; then
+if [ "$(git -C "${MOZ_SRC_DIR}" rev-parse --is-inside-work-tree 2>/dev/null || true)" != "true" ]; then
 	yell "Firefox Git checkout not found at ${MOZ_SRC_DIR}. Run ./bootstrap.sh first."
 	exit 1
 fi

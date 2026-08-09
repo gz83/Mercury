@@ -29,7 +29,7 @@ case "${1:-}" in
 	*) display_help >&2; exit 2 ;;
 esac
 
-if [[ ! -d "$MOZ_SRC_DIR/.git" ]]; then
+if [[ "$(git -C "$MOZ_SRC_DIR" rev-parse --is-inside-work-tree 2>/dev/null || true)" != "true" ]]; then
 	echo "Firefox Git checkout not found at $MOZ_SRC_DIR. Run ./bootstrap.sh first." >&2
 	exit 1
 fi

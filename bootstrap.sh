@@ -55,12 +55,12 @@ command -v python3 >/dev/null 2>&1 || {
 	exit 1
 }
 
-if [[ -e "$MOZ_SRC_DIR" && ! -d "$MOZ_SRC_DIR/.git" ]]; then
-	echo "MOZ_SRC_DIR exists but is not a Git checkout: $MOZ_SRC_DIR" >&2
-	exit 1
-fi
-
-if [[ ! -d "$MOZ_SRC_DIR/.git" ]]; then
+if [[ -e "$MOZ_SRC_DIR" ]]; then
+	if [[ "$(git -C "$MOZ_SRC_DIR" rev-parse --is-inside-work-tree 2>/dev/null || true)" != "true" ]]; then
+		echo "MOZ_SRC_DIR exists but is not a Git working tree: $MOZ_SRC_DIR" >&2
+		exit 1
+	fi
+else
 	mkdir -p "$(dirname "$MOZ_SRC_DIR")"
 	git clone "$FIREFOX_REPOSITORY" "$MOZ_SRC_DIR"
 fi

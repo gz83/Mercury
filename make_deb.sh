@@ -6,8 +6,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_DIR="$SCRIPT_DIR/packaging/debian"
+LOCALE_MANAGER="$SCRIPT_DIR/l10n/locale_manager.py"
+TRANSLATIONS_FILE="$SCRIPT_DIR/l10n/translations.json"
 PACKAGE_NAME="mercury-browser"
 INSTALL_PATH="usr/lib/mercury"
+FIREFOX_BASE_COMMIT="0c39e9282688363f5028d0541c17784f7fa5117c"
 DEFAULT_MOZ_SRC_DIR="$HOME/firefox"
 case "${OSTYPE:-}" in
 	msys*|cygwin*) DEFAULT_MOZ_SRC_DIR="/c/mozilla-source/firefox" ;;
@@ -33,7 +36,7 @@ Options:
 
 Environment variables:
   MOZ_SRC_DIR       Firefox checkout prepared by setup.sh
-  L10NBASEDIR       Prepared Mercury l10n workspace for localized desktop text
+  L10NBASEDIR       Workspace created by prepare_l10n.sh (required)
   DEB_ARCH          Target architecture: amd64, i386, arm64, x86_64, x86,
                     or aarch64 (default: detected from the archive)
   DEB_BUILD_NUMBER  Debian build number (default: 1)
@@ -70,26 +73,55 @@ while (( $# > 0 )); do
 	esac
 done
 
-for command_name in awk dh dpkg-buildpackage dpkg-deb git readelf tar; do
+for command_name in awk dh dpkg-buildpackage dpkg-deb git python3 readelf tar; do
 	command -v "$command_name" >/dev/null 2>&1 || {
 		echo "Required command not found: $command_name" >&2
 		exit 1
 	}
 done
 
-if [[ ! -x "$MOZ_SRC_DIR/mach" || ! -d "$MOZ_SRC_DIR/.git" ]]; then
+if [[ ! -x "$MOZ_SRC_DIR/mach" ]] || \
+	[[ "$(git -C "$MOZ_SRC_DIR" rev-parse --is-inside-work-tree 2>/dev/null || true)" != "true" ]]; then
 	echo "Firefox checkout not found at $MOZ_SRC_DIR. Run ./bootstrap.sh and ./setup.sh first." >&2
+	exit 1
+fi
+MOZ_SRC_DIR="$(cd "$MOZ_SRC_DIR" && pwd)"
+if [[ "$(git -C "$MOZ_SRC_DIR" rev-parse HEAD)" != "$FIREFOX_BASE_COMMIT" ]]; then
+	echo "Firefox checkout is not at the pinned Firefox 153.0.3 commit." >&2
 	exit 1
 fi
 if [[ ! -f "$TEMPLATE_DIR/control.in" ]]; then
 	echo "Debian templates not found at $TEMPLATE_DIR." >&2
 	exit 1
 fi
-if ! git -C "$MOZ_SRC_DIR" apply --reverse --check \
-	"$SCRIPT_DIR/patches/firefox-153/120-debian-package-identity.patch" 2>/dev/null; then
-	echo "The Mercury Debian repackaging patch is not applied. Run ./setup.sh first." >&2
+for required_patch in \
+	030-mercury-app-branding.patch \
+	080-mercury-localization.patch \
+	120-debian-package-identity.patch \
+	140-mercury-langpack-identity.patch; do
+	patch_path="$SCRIPT_DIR/patches/firefox-153/$required_patch"
+	if ! git -C "$MOZ_SRC_DIR" apply --reverse --check "$patch_path" 2>/dev/null; then
+		echo "$required_patch is not applied to $MOZ_SRC_DIR; run setup.sh first." >&2
+		exit 1
+	fi
+done
+
+if [[ -z "${L10NBASEDIR:-}" || ! -d "$L10NBASEDIR" ]]; then
+	echo "L10NBASEDIR must point to a workspace created by prepare_l10n.sh." >&2
 	exit 1
 fi
+L10NBASEDIR="$(cd "$L10NBASEDIR" && pwd)"
+export L10NBASEDIR
+
+python3 "$LOCALE_MANAGER" manifest \
+	--changesets "$MOZ_SRC_DIR/browser/locales/l10n-changesets.json" \
+	--workspace "$L10NBASEDIR" \
+	--translations "$TRANSLATIONS_FILE" \
+	--reference-root "$MOZ_SRC_DIR/browser/locales/en-US" \
+	--destination "${TMPDIR:-/tmp}" \
+	--output /dev/null \
+	--platform linux \
+	--overall planned
 
 if [[ -z "$archive" ]]; then
 	shopt -s nullglob

@@ -1,0 +1,971 @@
+{
+  "schemaVersion": 2,
+  "machineDraftEngine": "Google Translate",
+  "generatedAt": "2026-08-09",
+  "sourceLocale": "en-US",
+  "locales": {
+    "ach": {
+      "status": "machine-draft",
+      "target": "ach",
+      "messages": {
+        "community-2": "{ -brand-short-name } ki yubu ki Alex313031 ki <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">dul ma i wilobo</label> ma gitye ka tic kacel me gwoko Web ma oyabe, ma dano weng twero donyo iye.",
+        "desktop-action-open-temp-profile": "Yab ki lok ma pi kare manok",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ pe ngeyo kit me lok ki latic.",
+        "blockedByCORP": "ZXQ003ZXQ pi oyabo pot karatac eni pien nen calo yub me gwoko kuc pe rwate ki pot karatac ma okato ni.",
+        "networkProtocolError": "ZXQ003ZXQ okato ki peko me rwom me tic pa cim ma pe kitwero yubu ne."
+      }
+    },
+    "af": {
+      "status": "machine-draft",
+      "target": "af",
+      "messages": {
+        "community-2": "{ -brand-short-name } is ontwikkel deur Alex313031 en <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, 'n <label data-l10n-name=\"community-creditsLink\">wêreldwye gemeenskap</label> wat saamwerk om die web oop, publiek en toeganklik vir almal te hou.",
+        "desktop-action-open-temp-profile": "Maak oop met 'n tydelike profiel",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ weet nie hoe om met die bediener te kommunikeer nie.",
+        "blockedByCORP": "ZXQ003ZXQ het nie hierdie bladsy gelaai nie omdat dit lyk of die sekuriteitsopstelling nie ooreenstem met die vorige bladsy nie.",
+        "networkProtocolError": "ZXQ003ZXQ het 'n netwerkprotokoloortreding ervaar wat nie herstel kan word nie."
+      }
+    },
+    "an": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sabe cómo comunicarse con el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no cargó esta página porque parece que la configuración de seguridad no coincide con la página anterior."
+      }
+    },
+    "ar": {
+      "status": "machine-draft",
+      "target": "ar",
+      "messages": {
+        "community-2": "تم تطوير { -brand-short-name } بواسطة Alex313031 و<label data-l10n-name=\"community-mozillaLink\">Mozilla</label>، وهي <label data-l10n-name=\"community-creditsLink\">مجتمع عالمي</label> يعمل أفراده معًا لإبقاء الويب مفتوحًا وعامًا ومتاحًا للجميع.",
+        "desktop-action-open-temp-profile": "افتح باستخدام ملف تعريف مؤقت"
+      }
+    },
+    "ast": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sabe cómo comunicarse con el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no cargó esta página porque parece que la configuración de seguridad no coincide con la página anterior."
+      }
+    },
+    "az": {
+      "status": "machine-draft",
+      "target": "az",
+      "messages": {
+        "community-2": "{ -brand-short-name } Alex313031 və <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, Vebi açıq, ictimai və hamı üçün əlçatan saxlamaq üçün birlikdə çalışan <label data-l10n-name=\"community-creditsLink\">qlobal icma</label> tərəfindən hazırlanıb.",
+        "desktop-action-open-temp-profile": "Müvəqqəti profil ilə açın",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ serverlə necə əlaqə quracağını bilmir.",
+        "blockedByCORP": "ZXQ003ZXQ bu səhifəni yükləmədi, çünki təhlükəsizlik konfiqurasiyası əvvəlki səhifəyə uyğun gəlmir."
+      }
+    },
+    "be": {
+      "status": "machine-draft",
+      "target": "be",
+      "messages": {
+        "community-2": "{ -brand-short-name } распрацаваны Alex313031 і <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">глабальнай супольнасцю</label>, якая працуе разам, каб захаваць Інтэрнэт адкрытым, публічным і даступным для ўсіх.",
+        "desktop-action-open-temp-profile": "Адкрыць з дапамогай часовага профілю"
+      }
+    },
+    "bg": {
+      "status": "machine-draft",
+      "target": "bg",
+      "messages": {
+        "community-2": "{ -brand-short-name } е разработен от Alex313031 и <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">глобална общност</label>, която работи заедно, за да поддържа мрежата отворена, публична и достъпна за всички.",
+        "desktop-action-open-temp-profile": "Отворете с временен профил",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ не знае как да комуникира със сървъра.",
+        "blockedByCORP": "ZXQ003ZXQ не зареди тази страница, защото изглежда, че конфигурацията за сигурност не съответства на предишната страница."
+      }
+    },
+    "bn": {
+      "status": "machine-draft",
+      "target": "bn",
+      "messages": {
+        "community-2": "{ -brand-short-name } Alex313031 এবং <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> দ্বারা বিকশিত হয়েছে, একটি <label data-l10n-name=\"community-creditsLink\">গ্লোবাল কমিউনিটি</label> ওয়েবকে উন্মুক্ত, সর্বজনীন এবং সবার জন্য অ্যাক্সেসযোগ্য রাখতে একসাথে কাজ করছে৷",
+        "desktop-action-open-temp-profile": "একটি অস্থায়ী প্রোফাইল দিয়ে খুলুন",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ সার্ভারের সাথে কিভাবে যোগাযোগ করতে হয় তা জানে না।",
+        "blockedByCORP": "ZXQ003ZXQ এই পৃষ্ঠাটি লোড করেনি কারণ দেখে মনে হচ্ছে নিরাপত্তা কনফিগারেশন আগের পৃষ্ঠার সাথে মেলে না৷"
+      }
+    },
+    "br": {
+      "status": "machine-draft",
+      "target": "br",
+      "messages": {
+        "community-2": "{ -brand-short-name } a zo savet gant Alex313031 ha <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, ur <label data-l10n-name=\"community-creditsLink\">kumuniezh hollek</label> hag a labour a-gevret evit mirout ar Genrouedad digor, foran ha hegerz d'an holl.",
+        "desktop-action-open-temp-profile": "Digeriñ gant ur profil amzerel",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ne oar ket penaos mont e darempred gant an dafariad.",
+        "blockedByCORP": "ZXQ003ZXQ n'eo ket bet karget ar bajenn-mañ rak war a seblant ne glot ket ar c'hefluniadur diogelroez gant ar bajenn a-raok."
+      }
+    },
+    "bs": {
+      "status": "machine-draft",
+      "target": "bs",
+      "messages": {
+        "community-2": "{ -brand-short-name } su razvili Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globalna zajednica</label> koja radi zajedno kako bi Internet bio otvoren, javan i dostupan svima.",
+        "desktop-action-open-temp-profile": "Otvorite s privremenim profilom",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ne zna kako da komunicira sa serverom."
+      }
+    },
+    "ca": {
+      "status": "machine-draft",
+      "target": "ca",
+      "messages": {
+        "community-2": "{ -brand-short-name } està desenvolupat per Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunitat global</label> que treballa conjuntament per mantenir el web obert, públic i accessible per a tothom.",
+        "desktop-action-open-temp-profile": "Obre amb un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sap com comunicar-se amb el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no ha carregat aquesta pàgina perquè sembla que la configuració de seguretat no coincideix amb la pàgina anterior."
+      }
+    },
+    "ca-valencia": {
+      "status": "machine-draft",
+      "target": "ca",
+      "messages": {
+        "community-2": "{ -brand-short-name } està desenvolupat per Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunitat global</label> que treballa conjuntament per mantenir el web obert, públic i accessible per a tothom.",
+        "desktop-action-open-temp-profile": "Obre amb un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sap com comunicar-se amb el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no ha carregat aquesta pàgina perquè sembla que la configuració de seguretat no coincideix amb la pàgina anterior."
+      }
+    },
+    "cak": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sabe cómo comunicarse con el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no cargó esta página porque parece que la configuración de seguridad no coincide con la página anterior."
+      }
+    },
+    "cs": {
+      "status": "machine-draft",
+      "target": "cs",
+      "messages": {
+        "community-2": "{ -brand-short-name.gender ->\n    [masculine] { -brand-short-name } byl vytvořen vývojářem Alex313031 a organizací <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>. Jsme <label data-l10n-name=\"community-creditsLink\">celosvětová komunita</label> snažící se o zachování veřejně dostupného, otevřeného a všem přístupného webu.\n    [feminine] { -brand-short-name } byla vytvořena vývojářem Alex313031 a organizací <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>. Jsme <label data-l10n-name=\"community-creditsLink\">celosvětová komunita</label> snažící se o zachování veřejně dostupného, otevřeného a všem přístupného webu.\n    [neuter] { -brand-short-name } bylo vytvořeno vývojářem Alex313031 a organizací <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>. Jsme <label data-l10n-name=\"community-creditsLink\">celosvětová komunita</label> snažící se o zachování veřejně dostupného, otevřeného a všem přístupného webu.\n   *[other] Aplikace { -brand-short-name } byla vytvořena vývojářem Alex313031 a organizací <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>. Jsme <label data-l10n-name=\"community-creditsLink\">celosvětová komunita</label> snažící se o zachování veřejně dostupného, otevřeného a všem přístupného webu.\n}",
+        "desktop-action-open-temp-profile": "Otevřít pomocí dočasného profilu"
+      }
+    },
+    "cy": {
+      "status": "machine-draft",
+      "target": "cy",
+      "messages": {
+        "community-2": "Datblygir ZXQ000ZXQ gan Alex313031 a ZXQ001ZXQ, sef ZXQ002ZXQ sy'n gweithio gyda'i gilydd i gadw'r We yn agored, yn gyhoeddus ac yn hygyrch i bawb.",
+        "desktop-action-open-temp-profile": "Agor gyda phroffil dros dro"
+      }
+    },
+    "da": {
+      "status": "machine-draft",
+      "target": "da",
+      "messages": {
+        "community-2": "{ -brand-short-name } er udviklet af Alex313031 og <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, et <label data-l10n-name=\"community-creditsLink\">globalt fællesskab</label>, der arbejder sammen om at holde nettet åbent, offentligt og tilgængeligt for alle.",
+        "desktop-action-open-temp-profile": "Åbn med en midlertidig profil"
+      }
+    },
+    "de": {
+      "status": "machine-draft",
+      "target": "de",
+      "messages": {
+        "community-2": "{ -brand-short-name } wurde von Alex313031 und <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> entwickelt, einer <label data-l10n-name=\"community-creditsLink\">globalen Community</label>, die zusammenarbeitet, um das Web offen, öffentlich und für jedermann zugänglich zu halten.",
+        "desktop-action-open-temp-profile": "Mit einem temporären Profil öffnen"
+      }
+    },
+    "dsb": {
+      "status": "machine-draft",
+      "target": "de",
+      "messages": {
+        "community-2": "{ -brand-short-name } wurde von Alex313031 und <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> entwickelt, einer <label data-l10n-name=\"community-creditsLink\">globalen Community</label>, die zusammenarbeitet, um das Web offen, öffentlich und für jedermann zugänglich zu halten.",
+        "desktop-action-open-temp-profile": "Mit einem temporären Profil öffnen"
+      }
+    },
+    "el": {
+      "status": "machine-draft",
+      "target": "el",
+      "messages": {
+        "community-2": "Το { -brand-short-name } αναπτύχθηκε από τους Alex313031 και <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, μια <label data-l10n-name=\"community-creditsLink\">παγκόσμια κοινότητα</label> που συνεργάζεται για να διατηρεί τον Ιστό ανοιχτό, δημόσιο και προσβάσιμο σε όλους.",
+        "desktop-action-open-temp-profile": "Ανοίξτε με ένα προσωρινό προφίλ"
+      }
+    },
+    "en-CA": {
+      "status": "machine-draft",
+      "target": "en",
+      "messages": {
+        "community-2": "{ -brand-short-name } is developed by Alex313031 and <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, a <label data-l10n-name=\"community-creditsLink\">global community</label> working together to keep the Web open, public and accessible to everyone.",
+        "desktop-action-open-temp-profile": "Open with a temporary profile"
+      }
+    },
+    "en-GB": {
+      "status": "machine-draft",
+      "target": "en",
+      "messages": {
+        "community-2": "{ -brand-short-name } is developed by Alex313031 and <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, a <label data-l10n-name=\"community-creditsLink\">global community</label> working together to keep the Web open, public and accessible to everyone.",
+        "desktop-action-open-temp-profile": "Open with a temporary profile"
+      }
+    },
+    "eo": {
+      "status": "machine-draft",
+      "target": "eo",
+      "messages": {
+        "community-2": "{ -brand-short-name } estas evoluigita de Alex313031 kaj <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">tutmonda komunumo</label> kunlaboranta por konservi la Reton malfermita, publika kaj alirebla por ĉiuj.",
+        "desktop-action-open-temp-profile": "Malfermu kun provizora profilo"
+      }
+    },
+    "es-AR": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal"
+      }
+    },
+    "es-CL": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal"
+      }
+    },
+    "es-ES": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal"
+      }
+    },
+    "es-MX": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal"
+      }
+    },
+    "et": {
+      "status": "machine-draft",
+      "target": "et",
+      "messages": {
+        "community-2": "{ -brand-short-name } on välja töötanud Alex313031 ja <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">ülemaailmne kogukond</label>, kes töötavad koos, et hoida veebi avatuna, avalikuna ja kõigile juurdepääsetavana.",
+        "desktop-action-open-temp-profile": "Avage ajutise profiiliga",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ei tea, kuidas serveriga suhelda.",
+        "blockedByCORP": "ZXQ003ZXQ ei laadinud seda lehte, kuna tundub, et turbekonfiguratsioon ei ühti eelmisele lehele."
+      }
+    },
+    "eu": {
+      "status": "machine-draft",
+      "target": "eu",
+      "messages": {
+        "community-2": "{ -brand-short-name } Alex313031k eta <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>k garatzen dute, elkarrekin lan egiten duten <label data-l10n-name=\"community-creditsLink\">komunitate globala</label> Weba irekia, publikoa eta guztientzako eskuragarria mantentzeko.",
+        "desktop-action-open-temp-profile": "Ireki aldi baterako profil batekin"
+      }
+    },
+    "fa": {
+      "status": "machine-draft",
+      "target": "fa",
+      "messages": {
+        "community-2": "{ -brand-short-name } توسط Alex313031 و <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>، یک <label data-l10n-name=\"community-creditsLink\">جامعه جهانی</label> که با یکدیگر همکاری می‌کنند تا وب را باز، عمومی و برای همه در دسترس نگه دارند، توسعه داده شده است.",
+        "desktop-action-open-temp-profile": "با نمایه موقت باز کنید",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ نمی داند چگونه با سرور ارتباط برقرار کند.",
+        "blockedByCORP": "ZXQ003ZXQ این صفحه را بارگیری نکرد زیرا به نظر می رسد پیکربندی امنیتی با صفحه قبلی مطابقت ندارد."
+      }
+    },
+    "ff": {
+      "status": "machine-draft",
+      "target": "ff",
+      "messages": {
+        "community-2": "ZXQ000ZXQ ko Alex313031 e ZXQ001ZXQ peewni ɗum, ko ZXQ002ZXQ gollondirɗo ngam udditde Web, renndoyankeewo, keɓtinaaɗo e kala neɗɗo.",
+        "desktop-action-open-temp-profile": "Uddit e nate wakkati",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ anndaa no jokkondirta e serveer oo.",
+        "blockedByCORP": "ZXQ003ZXQ loowaani ngoo hello sabu ina wayi no kuutorgal kisal ngal yahdaani e hello ɓennungo ngoo."
+      }
+    },
+    "fi": {
+      "status": "machine-draft",
+      "target": "fi",
+      "messages": {
+        "community-2": "{ -brand-short-name(case: \"genitive\") } ovat kehittäneet Alex313031 ja <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">kansainvälinen yhteisö</label>, joka pyrkii kehittämään avointa, julkista ja kaikkien käytettävissä olevaa internetiä.",
+        "desktop-action-open-temp-profile": "Avaa väliaikaisella profiililla"
+      }
+    },
+    "fr": {
+      "status": "machine-draft",
+      "target": "fr",
+      "messages": {
+        "community-2": "{ -brand-short-name } est développé par Alex313031 et <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, une <label data-l10n-name=\"community-creditsLink\">communauté mondiale</label> travaillant ensemble pour maintenir le Web ouvert, public et accessible à tous.",
+        "desktop-action-open-temp-profile": "Ouvrir avec un profil temporaire"
+      }
+    },
+    "fur": {
+      "status": "machine-draft",
+      "target": "fur",
+      "messages": {
+        "community-2": "ZXQ000ZXQ al è svilupât di Alex313031 e ZXQ001ZXQ, un ZXQ002ZXQ che al lavore insiemi par mantignî il Web viert, public e acessibil a ducj.",
+        "desktop-action-open-temp-profile": "Viert cuntun profîl provisori",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ nol sa come comunicâ cul servidôr."
+      }
+    },
+    "fy-NL": {
+      "status": "machine-draft",
+      "target": "fy",
+      "messages": {
+        "community-2": "{ -brand-short-name } is ûntwikkele troch Alex313031 en <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, in <label data-l10n-name=\"community-creditsLink\">wrâldwide mienskip</label> dy't gearwurket om it web iepen, iepenbier en tagonklik te hâlden foar elkenien.",
+        "desktop-action-open-temp-profile": "Iepenje mei in tydlik profyl"
+      }
+    },
+    "ga-IE": {
+      "status": "machine-draft",
+      "target": "ga",
+      "messages": {
+        "community-2": "Tá { -brand-short-name } forbartha ag Alex313031 agus <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">pobal domhanda</label> ag obair le chéile chun an Gréasán a choinneáil oscailte, poiblí agus inrochtana do chách.",
+        "desktop-action-open-temp-profile": "Oscail le próifíl shealadach",
+        "clientSocketMisconfiguration": "Níl a fhios ag ZXQ003ZXQ conas cumarsáid a dhéanamh leis an bhfreastalaí.",
+        "blockedByCORP": "Níor lódáil ZXQ003ZXQ an leathanach seo toisc go bhfuil an chuma ar an scéal nach meaitseálann an chumraíocht slándála an leathanach roimhe seo.",
+        "networkProtocolError": "Tá sárú prótacail líonra tar éis teacht ar ZXQ003ZXQ nach féidir a dheisiú."
+      }
+    },
+    "gd": {
+      "status": "machine-draft",
+      "target": "gd",
+      "messages": {
+        "community-2": "Tha ZXQ000ZXQ air a leasachadh le Alex313031 agus ZXQ001ZXQ, ZXQ002ZXQ ag obair còmhla gus an lìon a chumail fosgailte, poblach agus ruigsinneach don h-uile duine.",
+        "desktop-action-open-temp-profile": "Fosgail le pròifil sealach",
+        "clientSocketMisconfiguration": "Chan eil fios aig ZXQ003ZXQ mar a nì thu conaltradh ris an fhrithealaiche.",
+        "blockedByCORP": "Cha do luchdaich ZXQ003ZXQ an duilleag seo a chionn 's gu bheil coltas nach eil an rèiteachadh tèarainteachd a' freagairt ris an duilleag roimhe."
+      }
+    },
+    "gl": {
+      "status": "machine-draft",
+      "target": "gl",
+      "messages": {
+        "community-2": "{ -brand-short-name } está desenvolvido por Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, unha <label data-l10n-name=\"community-creditsLink\">comunidade global</label> que traballa en conxunto para manter a Web aberta, pública e accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir cun perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ non sabe como comunicarse co servidor."
+      }
+    },
+    "gn": {
+      "status": "machine-draft",
+      "target": "gn",
+      "messages": {
+        "community-2": "{ -brand-short-name } omoheñói Alex313031 ha <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, peteĩ <label data-l10n-name=\"community-creditsLink\">komunida mundial</label> omba’apóva oñondivepa Web ojepe’a, opavave ha ojeike hag̃ua opavavetépe.",
+        "desktop-action-open-temp-profile": "Ojepe’a peteĩ perfil sapy’agua reheve"
+      }
+    },
+    "gu-IN": {
+      "status": "machine-draft",
+      "target": "gu",
+      "messages": {
+        "community-2": "{ -brand-short-name } એ Alex313031 અને <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> દ્વારા વિકસાવવામાં આવ્યું છે, જે એક <label data-l10n-name=\"community-creditsLink\">વૈશ્વિક સમુદાય</label> વેબને ખુલ્લું, સાર્વજનિક અને દરેક માટે સુલભ રાખવા માટે સાથે મળીને કામ કરે છે.",
+        "desktop-action-open-temp-profile": "અસ્થાયી પ્રોફાઇલ સાથે ખોલો",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ સર્વર સાથે કેવી રીતે વાતચીત કરવી તે જાણતું નથી.",
+        "blockedByCORP": "ZXQ003ZXQ એ આ પૃષ્ઠ લોડ કર્યું નથી કારણ કે એવું લાગે છે કે સુરક્ષા ગોઠવણી પાછલા પૃષ્ઠ સાથે મેળ ખાતી નથી."
+      }
+    },
+    "he": {
+      "status": "machine-draft",
+      "target": "he",
+      "messages": {
+        "community-2": "{ -brand-short-name } פותחה על ידי Alex313031 ו<label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">קהילה גלובלית</label> הפועלת יחד כדי לשמור על האינטרנט פתוח, ציבורי ונגיש לכולם.",
+        "desktop-action-open-temp-profile": "פתח עם פרופיל זמני"
+      }
+    },
+    "hi-IN": {
+      "status": "machine-draft",
+      "target": "hi",
+      "messages": {
+        "community-2": "{ -brand-short-name } को Alex313031 और <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> द्वारा विकसित किया गया है, जो एक <label data-l10n-name=\"community-creditsLink\">वैश्विक समुदाय</label> है जो वेब को खुला, सार्वजनिक और सभी के लिए सुलभ रखने के लिए मिलकर काम कर रहा है।",
+        "desktop-action-open-temp-profile": "एक अस्थायी प्रोफ़ाइल के साथ खोलें",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ सर्वर से संचार करना नहीं जानता।",
+        "blockedByCORP": "ZXQ003ZXQ ने इस पृष्ठ को लोड नहीं किया क्योंकि ऐसा लगता है कि सुरक्षा कॉन्फ़िगरेशन पिछले पृष्ठ से मेल नहीं खाता है।"
+      }
+    },
+    "hr": {
+      "status": "machine-draft",
+      "target": "hr",
+      "messages": {
+        "community-2": "{ -brand-short-name } razvili su Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globalna zajednica</label> koja zajedno radi na održavanju weba otvorenim, javnim i dostupnim svima.",
+        "desktop-action-open-temp-profile": "Otvorite s privremenim profilom"
+      }
+    },
+    "hsb": {
+      "status": "machine-draft",
+      "target": "de",
+      "messages": {
+        "community-2": "{ -brand-short-name } wurde von Alex313031 und <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> entwickelt, einer <label data-l10n-name=\"community-creditsLink\">globalen Community</label>, die zusammenarbeitet, um das Web offen, öffentlich und für jedermann zugänglich zu halten.",
+        "desktop-action-open-temp-profile": "Mit einem temporären Profil öffnen"
+      }
+    },
+    "hu": {
+      "status": "machine-draft",
+      "target": "hu",
+      "messages": {
+        "community-2": "A { -brand-short-name } az Alex313031 és a <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> fejlesztette ki, egy <label data-l10n-name=\"community-creditsLink\">globális közösség</label>, amely együttműködik annak érdekében, hogy az internet mindenki számára nyitott, nyilvános és elérhető legyen.",
+        "desktop-action-open-temp-profile": "Nyissa meg ideiglenes profillal"
+      }
+    },
+    "hy-AM": {
+      "status": "machine-draft",
+      "target": "hy",
+      "messages": {
+        "community-2": "{ -brand-short-name }-ը մշակվել է Alex313031 և <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> կողմից՝ <label data-l10n-name=\"community-creditsLink\">համաշխարհային համայնք</label>, որը համատեղ աշխատում է համացանցը բաց, հանրային և հասանելի բոլորի համար պահելու համար:",
+        "desktop-action-open-temp-profile": "Բացեք ժամանակավոր պրոֆիլով",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ-ն չգիտի, թե ինչպես շփվել սերվերի հետ:",
+        "blockedByCORP": "ZXQ003ZXQ-ը չի բեռնել այս էջը, քանի որ թվում է, թե անվտանգության կազմաձևը չի համընկնում նախորդ էջին:"
+      }
+    },
+    "ia": {
+      "status": "machine-draft",
+      "target": "it",
+      "messages": {
+        "community-2": "{ -brand-short-name } è sviluppato da Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunità globale</label> che lavora insieme per mantenere il Web aperto, pubblico e accessibile a tutti.",
+        "desktop-action-open-temp-profile": "Apri con un profilo temporaneo"
+      }
+    },
+    "id": {
+      "status": "machine-draft",
+      "target": "id",
+      "messages": {
+        "community-2": "{ -brand-short-name } dikembangkan oleh Alex313031 dan <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, sebuah <label data-l10n-name=\"community-creditsLink\">komunitas global</label> yang bekerja sama untuk menjaga Web tetap terbuka, publik, dan dapat diakses oleh semua orang.",
+        "desktop-action-open-temp-profile": "Buka dengan profil sementara"
+      }
+    },
+    "is": {
+      "status": "machine-draft",
+      "target": "is",
+      "messages": {
+        "community-2": "{ -brand-short-name } er þróað af Alex313031 og <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">alþjóðlegu samfélagi</label> sem vinnur saman að því að halda vefnum opnum, opinberum og aðgengilegum öllum.",
+        "desktop-action-open-temp-profile": "Opna með tímabundnum prófíl",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ veit ekki hvernig á að eiga samskipti við netþjóninn."
+      }
+    },
+    "it": {
+      "status": "machine-draft",
+      "target": "it",
+      "messages": {
+        "community-2": "{ -brand-short-name } è sviluppato da Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunità globale</label> che lavora insieme per mantenere il Web aperto, pubblico e accessibile a tutti.",
+        "desktop-action-open-temp-profile": "Apri con un profilo temporaneo"
+      }
+    },
+    "ja": {
+      "status": "machine-draft",
+      "target": "ja",
+      "messages": {
+        "community-2": "{ -brand-short-name } は、Alex313031 と <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> によって開発されました。<label data-l10n-name=\"community-creditsLink\">グローバル コミュニティ</label> は、Web をオープンかつ公開し、誰でもアクセスできるようにするために協力しています。",
+        "desktop-action-open-temp-profile": "一時的なプロファイルで開く"
+      }
+    },
+    "ja-JP-mac": {
+      "status": "machine-draft",
+      "target": "ja",
+      "messages": {
+        "community-2": "{ -brand-short-name } は、Alex313031 と <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> によって開発されました。<label data-l10n-name=\"community-creditsLink\">グローバル コミュニティ</label> は、Web をオープンかつ公開し、誰でもアクセスできるようにするために協力しています。",
+        "desktop-action-open-temp-profile": "一時的なプロファイルで開く"
+      }
+    },
+    "ka": {
+      "status": "machine-draft",
+      "target": "ka",
+      "messages": {
+        "community-2": "{ -brand-short-name } შემუშავებულია Alex313031 და <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>-ის მიერ, <label data-l10n-name=\"community-creditsLink\">გლობალური საზოგადოება</label>, რომელიც ერთად მუშაობს იმისათვის, რომ ინტერნეტი იყოს ღია, საჯარო და ყველასთვის ხელმისაწვდომი.",
+        "desktop-action-open-temp-profile": "გახსენით დროებითი პროფილით"
+      }
+    },
+    "kab": {
+      "status": "machine-draft",
+      "target": "fr",
+      "messages": {
+        "community-2": "{ -brand-short-name } est développé par Alex313031 et <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, une <label data-l10n-name=\"community-creditsLink\">communauté mondiale</label> travaillant ensemble pour maintenir le Web ouvert, public et accessible à tous.",
+        "desktop-action-open-temp-profile": "Ouvrir avec un profil temporaire",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ne sait pas comment communiquer avec le serveur.",
+        "blockedByCORP": "ZXQ003ZXQ n'a pas chargé cette page car il semble que la configuration de sécurité ne corresponde pas à la page précédente."
+      }
+    },
+    "kk": {
+      "status": "machine-draft",
+      "target": "kk",
+      "messages": {
+        "community-2": "{ -brand-short-name } қолданбасын Alex313031 және <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> әзірлеген, бұл вебті ашық, жалпыға ортақ және барлығына қолжетімді ету үшін бірге жұмыс істейтін <label data-l10n-name=\"community-creditsLink\">жаһандық қауымдастық</label>.",
+        "desktop-action-open-temp-profile": "Уақытша профильмен ашыңыз"
+      }
+    },
+    "km": {
+      "status": "machine-draft",
+      "target": "km",
+      "messages": {
+        "community-2": "{ -brand-short-name } ត្រូវបានបង្កើតឡើងដោយ Alex313031 និង <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> ដែលជា <label data-l10n-name=\"community-creditsLink\">សហគមន៍សកល</label> ដែលធ្វើការរួមគ្នាដើម្បីរក្សាគេហទំព័របើកចំហ ជាសាធារណៈ និងអាចចូលប្រើបានសម្រាប់មនុស្សគ្រប់គ្នា។",
+        "desktop-action-open-temp-profile": "បើកជាមួយទម្រង់បណ្តោះអាសន្ន",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ មិនដឹងពីរបៀបទំនាក់ទំនងជាមួយម៉ាស៊ីនមេទេ។",
+        "blockedByCORP": "ZXQ003ZXQ មិន​បាន​ផ្ទុក​ទំព័រ​នេះ​ទេ ព្រោះ​វា​មើល​ទៅ​ដូច​ជា​ការ​កំណត់​រចនាសម្ព័ន្ធ​សុវត្ថិភាព​មិន​ត្រូវ​គ្នា​នឹង​ទំព័រ​មុន។",
+        "networkProtocolError": "ZXQ003ZXQ បានជួបប្រទះការរំលោភលើពិធីការបណ្តាញដែលមិនអាចជួសជុលបាន។"
+      }
+    },
+    "kn": {
+      "status": "machine-draft",
+      "target": "kn",
+      "messages": {
+        "community-2": "{ -brand-short-name } ಅನ್ನು Alex313031 ಮತ್ತು <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">ಜಾಗತಿಕ ಸಮುದಾಯ</label> ಮೂಲಕ ಅಭಿವೃದ್ಧಿಪಡಿಸಲಾಗಿದೆ, ವೆಬ್ ಅನ್ನು ಮುಕ್ತವಾಗಿ, ಸಾರ್ವಜನಿಕವಾಗಿ ಮತ್ತು ಎಲ್ಲರಿಗೂ ಪ್ರವೇಶಿಸಲು ಒಟ್ಟಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ.",
+        "desktop-action-open-temp-profile": "ತಾತ್ಕಾಲಿಕ ಪ್ರೊಫೈಲ್‌ನೊಂದಿಗೆ ತೆರೆಯಿರಿ",
+        "unknownProtocolFound": "ಈ ವಿಳಾಸವನ್ನು ಹೇಗೆ ತೆರೆಯಬೇಕು ಎಂದು Mercuryಗೆ ತಿಳಿದಿಲ್ಲ, ಏಕೆಂದರೆ ಈ ಕೆಳಗಿನ ಪ್ರೊಟೊಕಾಲ್‌ಗಳಲ್ಲಿ (%S) ಒಂದು ಯಾವುದೆ ಪ್ರೊಗ್ರಾಮ್‌ಗೆ ಸಂಬಂಧಿಸಿಲ್ಲ ಅಥವ ಈ ಸನ್ನಿವೇಶದಲ್ಲಿ ಅದಕ್ಕೆ ಅನುಮತಿ ಇಲ್ಲ.",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ಸರ್ವರ್‌ನೊಂದಿಗೆ ಹೇಗೆ ಸಂವಹನ ನಡೆಸಬೇಕೆಂದು ತಿಳಿದಿಲ್ಲ.",
+        "blockedByCORP": "ZXQ003ZXQ ಈ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲಿಲ್ಲ ಏಕೆಂದರೆ ಭದ್ರತಾ ಕಾನ್ಫಿಗರೇಶನ್ ಹಿಂದಿನ ಪುಟಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ ಎಂದು ತೋರುತ್ತಿದೆ.",
+        "networkProtocolError": "ZXQ003ZXQ ರಿಪೇರಿ ಮಾಡಲಾಗದ ನೆಟ್‌ವರ್ಕ್ ಪ್ರೋಟೋಕಾಲ್ ಉಲ್ಲಂಘನೆಯನ್ನು ಅನುಭವಿಸಿದೆ."
+      }
+    },
+    "ko": {
+      "status": "machine-draft",
+      "target": "ko",
+      "messages": {
+        "community-2": "{ -brand-short-name }는 Alex313031과 <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>가 개발했습니다. Mozilla는 웹을 개방적이고 공개적이며 누구나 접근할 수 있도록 함께 노력하는 <label data-l10n-name=\"community-creditsLink\">글로벌 커뮤니티</label>입니다.",
+        "desktop-action-open-temp-profile": "임시 프로필로 열기"
+      }
+    },
+    "lij": {
+      "status": "machine-draft",
+      "target": "it",
+      "messages": {
+        "community-2": "{ -brand-short-name } è sviluppato da Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunità globale</label> che lavora insieme per mantenere il Web aperto, pubblico e accessibile a tutti.",
+        "desktop-action-open-temp-profile": "Apri con un profilo temporaneo",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ non sa come comunicare con il server.",
+        "blockedByCORP": "ZXQ003ZXQ non ha caricato questa pagina perché sembra che la configurazione di sicurezza non corrisponda alla pagina precedente.",
+        "networkProtocolError": "ZXQ003ZXQ ha riscontrato una violazione del protocollo di rete che non può essere riparata."
+      }
+    },
+    "lt": {
+      "status": "machine-draft",
+      "target": "lt",
+      "messages": {
+        "community-2": "{ -brand-short-name } sukūrė Alex313031 ir <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">pasaulinė bendruomenė</label>, kuri dirba kartu, kad žiniatinklis būtų atviras, viešas ir prieinamas visiems.",
+        "desktop-action-open-temp-profile": "Atidarykite naudodami laikiną profilį",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ nežino, kaip susisiekti su serveriu.",
+        "blockedByCORP": "ZXQ003ZXQ neįkėlė šio puslapio, nes atrodo, kad saugos konfigūracija neatitinka ankstesnio puslapio."
+      }
+    },
+    "lv": {
+      "status": "machine-draft",
+      "target": "lv",
+      "messages": {
+        "community-2": "{ -brand-short-name } izstrādāja Alex313031 un <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> — <label data-l10n-name=\"community-creditsLink\">globāla kopiena</label>, kas strādā kopā, lai tīmeklis būtu atvērts, publisks un pieejams ikvienam.",
+        "desktop-action-open-temp-profile": "Atvērt ar pagaidu profilu",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ nezina, kā sazināties ar serveri.",
+        "blockedByCORP": "ZXQ003ZXQ neielādēja šo lapu, jo šķiet, ka drošības konfigurācija neatbilst iepriekšējai lapai."
+      }
+    },
+    "mk": {
+      "status": "machine-draft",
+      "target": "mk",
+      "messages": {
+        "community-2": "{ -brand-short-name } е развиен од Alex313031 и <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">глобална заедница</label> која работи заедно за да го одржи Интернетот отворен, јавен и достапен за секого.",
+        "desktop-action-open-temp-profile": "Отворете со привремен профил",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ не знае како да комуницира со серверот.",
+        "sslv3Used": "ZXQ003ZXQ не може да ја гарантира безбедноста на вашите податоци на ZXQ004ZXQ бидејќи користи ZXQ005ZXQ, скршен безбедносен протокол.",
+        "blockedByCORP": "ZXQ003ZXQ не ја вчита оваа страница бидејќи се чини дека безбедносната конфигурација не се совпаѓа со претходната страница.",
+        "networkProtocolError": "ZXQ003ZXQ доживеа прекршување на мрежниот протокол што не може да се поправи."
+      }
+    },
+    "mr": {
+      "status": "machine-draft",
+      "target": "mr",
+      "messages": {
+        "community-2": "{ -brand-short-name } हे Alex313031 आणि <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">जागतिक समुदाय</label> यांनी वेब उघडे, सार्वजनिक आणि प्रत्येकासाठी प्रवेशयोग्य ठेवण्यासाठी एकत्र काम करत विकसित केले आहे.",
+        "desktop-action-open-temp-profile": "तात्पुरत्या प्रोफाइलसह उघडा",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ला सर्व्हरशी संवाद कसा साधायचा हे माहित नाही.",
+        "blockedByCORP": "ZXQ003ZXQ ने हे पृष्ठ लोड केले नाही कारण असे दिसते की सुरक्षा कॉन्फिगरेशन मागील पृष्ठाशी जुळत नाही."
+      }
+    },
+    "ms": {
+      "status": "machine-draft",
+      "target": "ms",
+      "messages": {
+        "community-2": "{ -brand-short-name } dibangunkan oleh Alex313031 dan <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, sebuah <label data-l10n-name=\"community-creditsLink\">komuniti global</label> yang bekerjasama untuk memastikan Web terbuka, awam dan boleh diakses oleh semua orang.",
+        "desktop-action-open-temp-profile": "Buka dengan profil sementara",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ tidak tahu bagaimana untuk berkomunikasi dengan pelayan.",
+        "blockedByCORP": "ZXQ003ZXQ tidak memuatkan halaman ini kerana nampaknya konfigurasi keselamatan tidak sepadan dengan halaman sebelumnya."
+      }
+    },
+    "my": {
+      "status": "machine-draft",
+      "target": "my",
+      "messages": {
+        "community-2": "{ -brand-short-name } ကို Alex313031 နှင့် <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> တို့က ဖန်တီးထားသည်။ Mozilla သည် ဝဘ်ကို ပွင့်လင်းစွာ၊ အများပြည်သူသုံးနိုင်စွာနှင့် လူတိုင်းလက်လှမ်းမီစွာ ထိန်းသိမ်းရန် အတူတကွ လုပ်ဆောင်နေသော <label data-l10n-name=\"community-creditsLink\">ကမ္ဘာလုံးဆိုင်ရာ အသိုင်းအဝန်း</label> တစ်ခု ဖြစ်သည်။",
+        "desktop-action-open-temp-profile": "ယာယီပရိုဖိုင်ဖြင့် ဖွင့်ပါ။",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ သည် ဆာဗာနှင့် မည်သို့ ဆက်သွယ်ရမည်ကို မသိပါ။",
+        "blockedByCORP": "ZXQ003ZXQ သည် လုံခြုံရေးဖွဲ့စည်းပုံသည် ယခင်စာမျက်နှာနှင့် မကိုက်ညီသောကြောင့် ဤစာမျက်နှာကို မဖွင့်ခဲ့ပါ။",
+        "networkProtocolError": "ZXQ003ZXQ သည် ပြုပြင်၍မရသော ကွန်ရက်ပရိုတိုကောချိုးဖောက်မှုကို ကြုံတွေ့ခဲ့ရသည်။"
+      }
+    },
+    "nb-NO": {
+      "status": "machine-draft",
+      "target": "no",
+      "messages": {
+        "community-2": "{ -brand-short-name } er utviklet av Alex313031 og <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, et <label data-l10n-name=\"community-creditsLink\">globalt fellesskap</label> som jobber sammen for å holde nettet åpent, offentlig og tilgjengelig for alle.",
+        "desktop-action-open-temp-profile": "Åpne med en midlertidig profil"
+      }
+    },
+    "ne-NP": {
+      "status": "machine-draft",
+      "target": "ne",
+      "messages": {
+        "community-2": "{ -brand-short-name } लाई Alex313031 र <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> द्वारा विकसित गरिएको हो, एउटा <label data-l10n-name=\"community-creditsLink\">वैश्विक समुदाय</label> वेबलाई खुला, सार्वजनिक र सबैका लागि पहुँचयोग्य राख्न सँगै काम गर्दै।",
+        "desktop-action-open-temp-profile": "अस्थायी प्रोफाइलको साथ खोल्नुहोस्",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ लाई सर्भरसँग कसरी सञ्चार गर्ने थाहा छैन।",
+        "blockedByCORP": "ZXQ003ZXQ ले यो पृष्ठ लोड गरेन किनभने यो सुरक्षा कन्फिगरेसन अघिल्लो पृष्ठसँग मेल खाँदैन जस्तो देखिन्छ।"
+      }
+    },
+    "nl": {
+      "status": "machine-draft",
+      "target": "nl",
+      "messages": {
+        "community-2": "{ -brand-short-name } is ontwikkeld door Alex313031 en <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, een <label data-l10n-name=\"community-creditsLink\">wereldwijde gemeenschap</label> die samenwerkt om het internet open, openbaar en voor iedereen toegankelijk te houden.",
+        "desktop-action-open-temp-profile": "Open met een tijdelijk profiel"
+      }
+    },
+    "nn-NO": {
+      "status": "machine-draft",
+      "target": "no",
+      "messages": {
+        "community-2": "{ -brand-short-name } er utviklet av Alex313031 og <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, et <label data-l10n-name=\"community-creditsLink\">globalt fellesskap</label> som jobber sammen for å holde nettet åpent, offentlig og tilgjengelig for alle.",
+        "desktop-action-open-temp-profile": "Åpne med en midlertidig profil"
+      }
+    },
+    "oc": {
+      "status": "machine-draft",
+      "target": "fr",
+      "messages": {
+        "community-2": "{ -brand-short-name } est développé par Alex313031 et <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, une <label data-l10n-name=\"community-creditsLink\">communauté mondiale</label> travaillant ensemble pour maintenir le Web ouvert, public et accessible à tous.",
+        "desktop-action-open-temp-profile": "Ouvrir avec un profil temporaire",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ne sait pas comment communiquer avec le serveur.",
+        "blockedByCORP": "ZXQ003ZXQ n'a pas chargé cette page car il semble que la configuration de sécurité ne corresponde pas à la page précédente."
+      }
+    },
+    "pa-IN": {
+      "status": "machine-draft",
+      "target": "pa",
+      "messages": {
+        "community-2": "{ -brand-short-name } ਨੂੰ Alex313031 ਅਤੇ <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> ਦੁਆਰਾ ਵਿਕਸਿਤ ਕੀਤਾ ਗਿਆ ਹੈ, ਇੱਕ <label data-l10n-name=\"community-creditsLink\">ਗਲੋਬਲ ਕਮਿਊਨਿਟੀ</label> ਵੈੱਬ ਨੂੰ ਖੁੱਲ੍ਹਾ, ਜਨਤਕ ਅਤੇ ਹਰ ਕਿਸੇ ਲਈ ਪਹੁੰਚਯੋਗ ਰੱਖਣ ਲਈ ਮਿਲ ਕੇ ਕੰਮ ਕਰ ਰਿਹਾ ਹੈ।",
+        "desktop-action-open-temp-profile": "ਇੱਕ ਅਸਥਾਈ ਪ੍ਰੋਫਾਈਲ ਨਾਲ ਖੋਲ੍ਹੋ"
+      }
+    },
+    "pl": {
+      "status": "machine-draft",
+      "target": "pl",
+      "messages": {
+        "community-2": "{ -brand-short-name } został opracowany przez Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globalną społeczność</label> współpracującą, aby sieć była otwarta, publiczna i dostępna dla wszystkich.",
+        "desktop-action-open-temp-profile": "Otwórz za pomocą profilu tymczasowego"
+      }
+    },
+    "pt-BR": {
+      "status": "machine-draft",
+      "target": "pt",
+      "messages": {
+        "community-2": "{ -brand-short-name } é desenvolvido por Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, uma <label data-l10n-name=\"community-creditsLink\">comunidade global</label> que trabalha em conjunto para manter a Web aberta, pública e acessível a todos.",
+        "desktop-action-open-temp-profile": "Abra com um perfil temporário"
+      }
+    },
+    "pt-PT": {
+      "status": "machine-draft",
+      "target": "pt",
+      "messages": {
+        "community-2": "{ -brand-short-name } é desenvolvido por Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, uma <label data-l10n-name=\"community-creditsLink\">comunidade global</label> que trabalha em conjunto para manter a Web aberta, pública e acessível a todos.",
+        "desktop-action-open-temp-profile": "Abra com um perfil temporário"
+      }
+    },
+    "rm": {
+      "status": "machine-draft",
+      "target": "de",
+      "messages": {
+        "community-2": "{ -brand-short-name } wurde von Alex313031 und <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> entwickelt, einer <label data-l10n-name=\"community-creditsLink\">globalen Community</label>, die zusammenarbeitet, um das Web offen, öffentlich und für jedermann zugänglich zu halten.",
+        "desktop-action-open-temp-profile": "Mit einem temporären Profil öffnen",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ weiß nicht, wie es mit dem Server kommunizieren soll."
+      }
+    },
+    "ro": {
+      "status": "machine-draft",
+      "target": "ro",
+      "messages": {
+        "community-2": "{ -brand-short-name } este dezvoltat de Alex313031 și <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, o <label data-l10n-name=\"community-creditsLink\">comunitate globală</label> care lucrează împreună pentru a menține web-ul deschis, public și accesibil tuturor.",
+        "desktop-action-open-temp-profile": "Deschideți cu un profil temporar"
+      }
+    },
+    "ru": {
+      "status": "machine-draft",
+      "target": "ru",
+      "messages": {
+        "community-2": "{ -brand-short-name } разработан Alex313031 и <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">глобальным сообществом</label>, работающим вместе, чтобы сделать Интернет открытым, общедоступным и доступным для всех.",
+        "desktop-action-open-temp-profile": "Открыть с временным профилем"
+      }
+    },
+    "sat": {
+      "status": "machine-draft",
+      "target": "sat",
+      "messages": {
+        "community-2": "{ -brand-short-name } ᱫᱚ Alex313031 ᱟᱨ <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> ᱦᱚᱛᱮᱛᱮ ᱩᱛᱱᱟᱹᱣ ᱟᱠᱟᱱᱟ, ᱢᱤᱫ <label data-l10n-name=\"community-creditsLink\">ᱜᱞᱚᱵᱟᱞ ᱜᱟᱶᱛᱟ</label> ᱡᱟᱦᱟᱸ ᱫᱚ ᱣᱮᱵᱽ ᱮᱠᱥᱮᱥ ᱥᱟᱱᱟᱢ ᱠᱚ ᱞᱟᱹᱜᱤᱫ ᱢᱤᱫ ᱥᱟᱶᱛᱮ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟ᱾",
+        "desktop-action-open-temp-profile": "ᱢᱤᱫ ᱦᱟᱹᱞᱤ ᱯᱨᱚᱯᱷᱟᱭᱤᱞ ᱥᱟᱶ ᱡᱷᱤᱡᱽ ᱢᱮ",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ᱥᱮᱨᱵᱷᱟᱨ ᱥᱟᱶ ᱡᱚᱜᱟᱡᱩᱜᱽ ᱵᱟᱭ ᱵᱟᱰᱟᱭᱟ ᱾",
+        "blockedByCORP": "ZXQ003ZXQ ᱫᱚ ᱱᱚᱶᱟ ᱥᱟᱦᱴᱟ ᱵᱟᱭ ᱞᱳᱰ ᱞᱮᱫᱟ ᱪᱮᱫᱟᱜ ᱥᱮ ᱱᱚᱶᱟ ᱞᱮᱠᱟ ᱧᱮᱞᱚᱜ ᱠᱟᱱᱟ ᱡᱮ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱠᱚᱱᱯᱷᱤᱜᱟᱨᱮᱥᱚᱱ ᱫᱚ ᱞᱟᱦᱟ ᱥᱟᱦᱴᱟ ᱥᱟᱶ ᱵᱟᱝ ᱢᱤᱞᱟᱹᱣ ᱟᱠᱟᱱᱟ᱾"
+      }
+    },
+    "sc": {
+      "status": "machine-draft",
+      "target": "it",
+      "messages": {
+        "community-2": "{ -brand-short-name } è sviluppato da Alex313031 e <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunità globale</label> che lavora insieme per mantenere il Web aperto, pubblico e accessibile a tutti.",
+        "desktop-action-open-temp-profile": "Apri con un profilo temporaneo",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ non sa come comunicare con il server.",
+        "blockedByCORP": "ZXQ003ZXQ non ha caricato questa pagina perché sembra che la configurazione di sicurezza non corrisponda alla pagina precedente."
+      }
+    },
+    "sco": {
+      "status": "machine-draft",
+      "target": "en",
+      "messages": {
+        "community-2": "{ -brand-short-name } is developed by Alex313031 and <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, a <label data-l10n-name=\"community-creditsLink\">global community</label> working together to keep the Web open, public and accessible to everyone.",
+        "desktop-action-open-temp-profile": "Open with a temporary profile",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ does not know how to communicate with the server.",
+        "blockedByCORP": "ZXQ003ZXQ did not load this page because it looks like the security configuration does not match the previous page."
+      }
+    },
+    "si": {
+      "status": "machine-draft",
+      "target": "si",
+      "messages": {
+        "community-2": "{ -brand-short-name } වෙබ් විවෘතව, පොදු සහ සැමට ප්‍රවේශ විය හැකි ලෙස තබා ගැනීමට එක්ව ක්‍රියා කරන <label data-l10n-name=\"community-creditsLink\">ගෝලීය ප්‍රජාවක්</label>, Alex313031 සහ <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> විසින් සංවර්ධනය කර ඇත.",
+        "desktop-action-open-temp-profile": "තාවකාලික පැතිකඩක් සමඟ විවෘත කරන්න",
+        "unknownProtocolFound": "ZXQ003ZXQ මෙම ලිපිනය විවෘත කරන්නේ කෙසේදැයි නොදනී, මන්ද පහත ප්‍රොටෝකෝල වලින් එකක් (ZXQ004ZXQ) කිසිදු වැඩසටහනක් සමඟ සම්බන්ධ වී නොමැති හෝ මෙම සන්දර්භය තුළ ඉඩ නොදේ.",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ සේවාදායකය සමඟ සන්නිවේදනය කරන්නේ කෙසේදැයි නොදනී.",
+        "sslv3Used": "ZXQ003ZXQ, ZXQ005ZXQ, බිඳුණු ආරක්ෂක ප්‍රොටෝකෝලය භාවිතා කරන නිසා ZXQ004ZXQ මත ඔබේ දත්තවල ආරක්ෂාව සහතික කළ නොහැක.",
+        "blockedByCORP": "ZXQ003ZXQ ආරක්ෂක වින්‍යාසය පෙර පිටුවට නොගැලපෙන බව පෙනෙන නිසා මෙම පිටුව පූරණය නොකළේය.",
+        "networkProtocolError": "ZXQ003ZXQ අලුත්වැඩියා කළ නොහැකි ජාල ප්‍රොටෝකෝල උල්ලංඝනයක් අත්විඳ ඇත."
+      }
+    },
+    "sk": {
+      "status": "machine-draft",
+      "target": "sk",
+      "messages": {
+        "community-2": "{ -brand-short-name } vyvinuli Alex313031 a <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globálna komunita</label>, ktorá spoločne pracuje na tom, aby bol web otvorený, verejný a dostupný pre každého.",
+        "desktop-action-open-temp-profile": "Otvoriť s dočasným profilom"
+      }
+    },
+    "skr": {
+      "status": "machine-draft",
+      "target": "ur",
+      "messages": {
+        "community-2": "{ -brand-short-name } کو Alex313031 اور <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> نے تیار کیا ہے، جو کہ ایک <label data-l10n-name=\"community-creditsLink\">عالمی برادری</label> ویب کو کھلا، عوامی اور ہر کسی کے لیے قابل رسائی رکھنے کے لیے مل کر کام کر رہی ہے۔",
+        "desktop-action-open-temp-profile": "ایک عارضی پروفائل کے ساتھ کھولیں۔",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ سرور کے ساتھ بات چیت کرنے کا طریقہ نہیں جانتا ہے۔",
+        "blockedByCORP": "ZXQ003ZXQ نے اس صفحہ کو لوڈ نہیں کیا کیونکہ ایسا لگتا ہے کہ سیکیورٹی کی ترتیب پچھلے صفحہ سے مماثل نہیں ہے۔"
+      }
+    },
+    "sl": {
+      "status": "machine-draft",
+      "target": "sl",
+      "messages": {
+        "community-2": "{ -brand-short-name } sta razvila Alex313031 in <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globalna skupnost</label>, ki skupaj skrbi, da bi bil splet odprt, javen in dostopen vsem.",
+        "desktop-action-open-temp-profile": "Odprite z začasnim profilom"
+      }
+    },
+    "son": {
+      "status": "machine-draft",
+      "target": "fr",
+      "messages": {
+        "community-2": "{ -brand-short-name } est développé par Alex313031 et <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, une <label data-l10n-name=\"community-creditsLink\">communauté mondiale</label> travaillant ensemble pour maintenir le Web ouvert, public et accessible à tous.",
+        "desktop-action-open-temp-profile": "Ouvrir avec un profil temporaire",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ ne sait pas comment communiquer avec le serveur.",
+        "blockedByCORP": "ZXQ003ZXQ n'a pas chargé cette page car il semble que la configuration de sécurité ne corresponde pas à la page précédente.",
+        "networkProtocolError": "ZXQ003ZXQ a rencontré une violation du protocole réseau qui ne peut pas être réparée."
+      }
+    },
+    "sq": {
+      "status": "machine-draft",
+      "target": "sq",
+      "messages": {
+        "community-2": "{ -brand-short-name }-i është hartuar nga Alex313031 dhe <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, një <label data-l10n-name=\"community-creditsLink\">bashkësi mbarëbotërore</label> që punon tok për ta mbajtur Web-in të hapët, publik dhe të përdorshëm nga kushdo.",
+        "desktop-action-open-temp-profile": "Hape me një profil të përkohshëm"
+      }
+    },
+    "sr": {
+      "status": "machine-draft",
+      "target": "sr",
+      "messages": {
+        "community-2": "{ -brand-short-name } су развили Alex313031 и <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">глобална заједница</label> која заједно ради на томе да веб остане отворен, јаван и доступан свима.",
+        "desktop-action-open-temp-profile": "Отворите са привременим профилом"
+      }
+    },
+    "sv-SE": {
+      "status": "machine-draft",
+      "target": "sv-SE",
+      "messages": {
+        "community-2": "{ -brand-short-name } är utvecklad av Alex313031 och <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, en <label data-l10n-name=\"community-creditsLink\">global gemenskap</label> som arbetar tillsammans för att hålla webben öppen, offentlig och tillgänglig för alla.",
+        "desktop-action-open-temp-profile": "Öppna med en tillfällig profil"
+      }
+    },
+    "szl": {
+      "status": "machine-draft",
+      "target": "pl",
+      "messages": {
+        "community-2": "{ -brand-short-name } został opracowany przez Alex313031 i <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">globalną społeczność</label> współpracującą, aby sieć była otwarta, publiczna i dostępna dla wszystkich.",
+        "desktop-action-open-temp-profile": "Otwórz za pomocą profilu tymczasowego",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ nie wie, jak komunikować się z serwerem.",
+        "blockedByCORP": "ZXQ003ZXQ nie załadował tej strony, ponieważ wygląda na to, że konfiguracja zabezpieczeń nie jest zgodna z poprzednią stroną."
+      }
+    },
+    "ta": {
+      "status": "machine-draft",
+      "target": "ta",
+      "messages": {
+        "community-2": "{ -brand-short-name } ஆனது Alex313031 மற்றும் <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, ஒரு <label data-l10n-name=\"community-creditsLink\">உலகளாவிய சமூகம்</label> இணைந்து வலையை திறந்ததாகவும், பொது மற்றும் அனைவருக்கும் அணுகக்கூடியதாகவும் வைத்திருக்கும் வகையில் உருவாக்கப்பட்டுள்ளது.",
+        "desktop-action-open-temp-profile": "தற்காலிக சுயவிவரத்துடன் திறக்கவும்",
+        "fileNotFound": "%S இல் உள்ள கோப்பைக் கண்டுபிடிக்க முடியவில்லை.",
+        "unknownProtocolFound": "Mercuryக்கு இந்த முகவரியை எவ்வாறு திறப்பது என்று தெரியவில்லை, ஏனெனில் பின்வரும் நெறிமுறைகளில் ஒன்று (%S) எந்த நிரலுடனும் தொடர்புபடுத்தப்படவில்லை அல்லது இந்தச் சூழலில் அனுமதிக்கப்படவில்லை.",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ சேவையகத்துடன் எவ்வாறு தொடர்புகொள்வது என்று தெரியவில்லை.",
+        "blockedByCORP": "ZXQ003ZXQ இந்தப் பக்கத்தை ஏற்றவில்லை, ஏனெனில் பாதுகாப்பு உள்ளமைவு முந்தைய பக்கத்துடன் பொருந்தவில்லை.",
+        "networkProtocolError": "ZXQ003ZXQ சரிசெய்ய முடியாத நெட்வொர்க் நெறிமுறை மீறலைச் சந்தித்துள்ளது."
+      }
+    },
+    "te": {
+      "status": "machine-draft",
+      "target": "te",
+      "messages": {
+        "community-2": "{ -brand-short-name }ను రూపొందించినది Alex313031 మరియు <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, వీరు జాలాన్ని స్వేచ్ఛగా, బహిరంగంగా, అందరికీ అందుబాటులో ఉంచేందుకు కలిసి కృషి చేస్తున్న <label data-l10n-name=\"community-creditsLink\">ప్రపంచవ్యాప్త సముదాయం</label>.",
+        "desktop-action-open-temp-profile": "తాత్కాలిక ప్రొఫైల్‌తో తెరవండి",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ సర్వర్‌తో ఎలా కమ్యూనికేట్ చేయాలో తెలియదు.",
+        "blockedByCORP": "ZXQ003ZXQ ఈ పేజీని లోడ్ చేయలేదు ఎందుకంటే భద్రతా కాన్ఫిగరేషన్ మునుపటి పేజీకి సరిపోలడం లేదు.",
+        "networkProtocolError": "ZXQ003ZXQ రిపేర్ చేయలేని నెట్‌వర్క్ ప్రోటోకాల్ ఉల్లంఘనను ఎదుర్కొంది."
+      }
+    },
+    "tg": {
+      "status": "machine-draft",
+      "target": "tg",
+      "messages": {
+        "community-2": "{ -brand-short-name } аз ҷониби Alex313031 ва <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">як ҷомеаи ҷаҳонӣ</label>, ки барои боз, оммавӣ ва барои ҳама дастрас нигоҳ доштани веб якҷоя кор мекунад, таҳия шудааст.",
+        "desktop-action-open-temp-profile": "Бо профили муваққатӣ кушоед"
+      }
+    },
+    "th": {
+      "status": "machine-draft",
+      "target": "th",
+      "messages": {
+        "community-2": "{ -brand-short-name } ได้รับการพัฒนาโดย Alex313031 และ <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> ซึ่งเป็น <label data-l10n-name=\"community-creditsLink\">ชุมชนระดับโลก</label>ที่ทำงานร่วมกันเพื่อให้เว็บเปิดกว้าง เปิดเผยต่อสาธารณะ และทุกคนสามารถเข้าถึงได้",
+        "desktop-action-open-temp-profile": "เปิดด้วยโปรไฟล์ชั่วคราว"
+      }
+    },
+    "tl": {
+      "status": "machine-draft",
+      "target": "tl",
+      "messages": {
+        "community-2": "Ang { -brand-short-name } ay binuo ni Alex313031 at <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, isang <label data-l10n-name=\"community-creditsLink\">pandaigdigang komunidad</label> na nagtutulungan upang panatilihing bukas, pampubliko at naa-access ng lahat ang Web.",
+        "desktop-action-open-temp-profile": "Buksan gamit ang isang pansamantalang profile",
+        "clientSocketMisconfiguration": "Hindi alam ng ZXQ003ZXQ kung paano makipag-usap sa server.",
+        "blockedByCORP": "Hindi na-load ng ZXQ003ZXQ ang page na ito dahil mukhang hindi tumutugma ang configuration ng seguridad sa nakaraang page."
+      }
+    },
+    "tr": {
+      "status": "machine-draft",
+      "target": "tr",
+      "messages": {
+        "community-2": "{ -brand-short-name }, Alex313031 ve Web'i açık, kamusal ve herkes için erişilebilir tutmak için birlikte çalışan <label data-l10n-name=\"community-creditsLink\">küresel bir topluluk</label> olan <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> tarafından geliştirilmiştir.",
+        "desktop-action-open-temp-profile": "Geçici bir profille aç"
+      }
+    },
+    "trs": {
+      "status": "machine-draft",
+      "target": "es",
+      "messages": {
+        "community-2": "{ -brand-short-name } es desarrollado por Alex313031 y <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, una <label data-l10n-name=\"community-creditsLink\">comunidad global</label> que trabaja en conjunto para mantener la Web abierta, pública y accesible para todos.",
+        "desktop-action-open-temp-profile": "Abrir con un perfil temporal",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ no sabe cómo comunicarse con el servidor.",
+        "blockedByCORP": "ZXQ003ZXQ no cargó esta página porque parece que la configuración de seguridad no coincide con la página anterior."
+      }
+    },
+    "uk": {
+      "status": "machine-draft",
+      "target": "uk",
+      "messages": {
+        "community-2": "{ -brand-short-name } розроблено Alex313031 і <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">всесвітньою спільнотою</label>, яка працює разом, щоб зберегти Інтернет відкритим, загальнодоступним і доступним для всіх.",
+        "desktop-action-open-temp-profile": "Відкрити за допомогою тимчасового профілю"
+      }
+    },
+    "ur": {
+      "status": "machine-draft",
+      "target": "ur",
+      "messages": {
+        "community-2": "{ -brand-short-name } کو Alex313031 اور <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> نے تیار کیا ہے، جو کہ ایک <label data-l10n-name=\"community-creditsLink\">عالمی برادری</label> ویب کو کھلا، عوامی اور ہر کسی کے لیے قابل رسائی رکھنے کے لیے مل کر کام کر رہی ہے۔",
+        "desktop-action-open-temp-profile": "ایک عارضی پروفائل کے ساتھ کھولیں۔",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ سرور کے ساتھ بات چیت کرنے کا طریقہ نہیں جانتا ہے۔",
+        "blockedByCORP": "ZXQ003ZXQ نے اس صفحہ کو لوڈ نہیں کیا کیونکہ ایسا لگتا ہے کہ سیکیورٹی کی ترتیب پچھلے صفحہ سے مماثل نہیں ہے۔"
+      }
+    },
+    "uz": {
+      "status": "machine-draft",
+      "target": "uz",
+      "messages": {
+        "community-2": "{ -brand-short-name } Alex313031 va <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> tomonidan ishlab chiqilgan, <label data-l10n-name=\"community-creditsLink\">global hamjamiyat</label> Internetni ochiq, ommaviy va hamma foydalanishi mumkin bo‘lgan holda saqlash uchun birgalikda ishlaydi.",
+        "desktop-action-open-temp-profile": "Vaqtinchalik profil bilan oching",
+        "clientSocketMisconfiguration": "ZXQ003ZXQ server bilan qanday bog'lanishni bilmaydi.",
+        "blockedByCORP": "ZXQ003ZXQ bu sahifani yuklamadi, chunki xavfsizlik konfiguratsiyasi oldingi sahifaga mos kelmaydi.",
+        "networkProtocolError": "ZXQ003ZXQ tuzatib bo'lmaydigan tarmoq protokoli buzilishiga duch keldi."
+      }
+    },
+    "vi": {
+      "status": "machine-draft",
+      "target": "vi",
+      "messages": {
+        "community-2": "{ -brand-short-name } được phát triển bởi Alex313031 và <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, một <label data-l10n-name=\"community-creditsLink\">cộng đồng toàn cầu</label> cùng hợp tác để giữ cho Web luôn mở, công khai và có thể truy cập được đối với mọi người.",
+        "desktop-action-open-temp-profile": "Mở bằng hồ sơ tạm thời"
+      }
+    },
+    "xh": {
+      "status": "machine-draft",
+      "target": "xh",
+      "messages": {
+        "community-2": "{ -brand-short-name } iphuhliswe ngu Alex313031 kunye <label data-l10n-name=\"community-mozillaLink\">Mozilla</label>, <label data-l10n-name=\"community-creditsLink\">uluntu lwehlabathi</label> olusebenza kunye ukugcina iWeb ivuliwe, esidlangalaleni kwaye ifikeleleka kumntu wonke.",
+        "desktop-action-open-temp-profile": "Vula ngeprofayile yethutyana",
+        "clientSocketMisconfiguration": "I-ZXQ003ZXQ ayiyazi indlela yokunxibelelana nomncedisi.",
+        "blockedByCORP": "ZXQ003ZXQ ayilayishanga eli phepha kuba likhangeleka ngathi ubumbeko lokhuseleko aluhambelani nephepha elidlulileyo.",
+        "networkProtocolError": "I-ZXQ003ZXQ ifumene ukuphulwa kweprotocol yenethiwekhi engenakulungiswa."
+      }
+    },
+    "zh-CN": {
+      "status": "reviewed",
+      "target": "zh-CN",
+      "messages": {
+        "community-2": "{ -brand-short-name } 由 Alex313031 与 <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> 共同打造。Mozilla 是一个<label data-l10n-name=\"community-creditsLink\">全球社区</label>，携手致力于让互联网保持开放、公开且人人可用。",
+        "desktop-action-open-temp-profile": "使用临时用户配置文件打开",
+        "fileNotFound": "Mercury 无法在 %S 找到该文件。",
+        "unknownProtocolFound": "Mercury 不知道如何打开这个地址，因为协议 (%S) 未与任何程序关联，或此环境下不可打开该协议的地址。",
+        "connectionFailure": "Mercury 无法建立到 %S 服务器的连接。",
+        "redirectLoop": "Mercury 检测到该服务器正在将指向此网址的请求无限循环重定向。",
+        "clientSocketMisconfiguration": "Mercury 不知道如何与该服务器通信。",
+        "netOffline": "Mercury 正处于脱机模式，不能浏览网络。",
+        "deniedPortAccess": "此网址使用了一个通常用于网络浏览以外目的的端口。出于安全原因，Mercury 取消了该请求。",
+        "proxyResolveFailure": "Mercury 无法找到您指定的代理服务器。",
+        "proxyConnectFailure": "Mercury 尝试与您指定的代理服务器连接时被拒绝。",
+        "sslv3Used": "Mercury 无法保证您在 %S 上的数据安全性，因为它使用 SSLv3，一个目前安全性欠佳的安全协议。",
+        "blockedByCORP": "Mercury 未加载此页面，因为其安全配置与上个页面似乎不一致。",
+        "networkProtocolError": "Mercury 遇到一个无法修复的网络协议违规。"
+      }
+    },
+    "zh-TW": {
+      "status": "reviewed",
+      "target": "zh-TW",
+      "messages": {
+        "community-2": "{ -brand-short-name } 由 Alex313031 與 <label data-l10n-name=\"community-mozillaLink\">Mozilla</label> 共同打造。Mozilla 是個<label data-l10n-name=\"community-creditsLink\">全球性社群</label>。我們一起努力讓網路保持開放，任誰都可隨意使用。",
+        "desktop-action-open-temp-profile": "使用暫時使用者設定檔開啟",
+        "fileNotFound": "Mercury 找不到檔案 %S。",
+        "unknownProtocolFound": "Mercury 不知道如何開啟此網址，因為下列通訊協定當中的某個通訊協定 (%S) 未與任何程式關聯，或不被允許在此環境中使用。",
+        "connectionFailure": "Mercury 無法與伺服器 %S 建立連線。",
+        "redirectLoop": "Mercury 發現伺服器要將此網址重新導向的要求無法完成。",
+        "clientSocketMisconfiguration": "Mercury 不知道如何與伺服器通訊。",
+        "netOffline": "Mercury 正處於離線模式，無法瀏覽網路。",
+        "deniedPortAccess": "此網址所用的通訊埠 (Port) 通常不是用於網路瀏覽。為了安全性考量，Mercury 已經取消連線要求。",
+        "proxyResolveFailure": "Mercury 找不到您所設定的 Proxy 伺服器。",
+        "proxyConnectFailure": "Mercury 無法與您設定的 Proxy 伺服器連線。",
+        "sslv3Used": "Mercury 無法保證您在 %S 的資料安全，因為此網站使用 SSLv3 通訊協定，這個協定已不再安全。",
+        "blockedByCORP": "因為此頁面的安全性設定與前一頁不符，Mercury 並未載入此頁面。",
+        "networkProtocolError": "Mercury 遇到了違反通訊協定的情況，無法修復。"
+      }
+    }
+  }
+}

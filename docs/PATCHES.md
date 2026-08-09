@@ -21,7 +21,7 @@ The versioned patches in `patches/firefox-153/` apply only to
 | `110-mercury-devtools-branding.patch` | Use Mercury branding for the local `about:debugging` runtime without replacing remote Firefox and Fenix channel icons |
 | `120-debian-package-identity.patch` | Give Firefox's application and language-pack Debian repackagers Mercury package/install identities and generate localized desktop entries from Mercury branding |
 | `130-mercury-plugin-container-branding.patch` | Use Mercury's company name in the Windows `plugin-container.exe` version resource |
-| `140-mercury-langpack-identity.patch` | Give Mercury language packs a product-specific ID and keep runtime fallback, crash reporter and MSIX packaging consistent |
+| `140-mercury-langpack-identity.patch` | Give Mercury language packs product-specific names and IDs, and keep runtime fallback, crash reporter and MSIX packaging consistent |
 | `150-mercury-user-agent-compatibility.patch` | Keep Mercury's network User-Agent Firefox-compatible without replacing Firefox 153's HTTP handler |
 | `160-mercury-profileserver-software-rendering.patch` | Make PGO profile generation independent of target GPU and driver availability |
 | `170-mercury-windows-sfx-branding.patch` | Brand the Windows 7-Zip self-extractor source and report Mercury's Windows 10 minimum |
@@ -129,12 +129,15 @@ and certificate identity required by the upstream stub download flow.
 Mercury's Debian packages use Firefox's `mach repackage deb` and
 `mach repackage deb-l10n` implementations. Product-specific templates live in
 `packaging/debian/` and `packaging/debian-langpack/`. Firefox's localized
-desktop generator supplies the application entry and uses `L10NBASEDIR` when
-the prepared Mercury localization workspace is available. The old committed
-`dist/` root filesystem and its duplicated icons, compressed documentation,
-static dependency list, and legacy MIME registration were removed.
+desktop generator supplies the application entry. `make_deb.sh` requires
+`L10NBASEDIR` and validates the prepared Mercury localization marker and
+content before invoking it. The old committed `dist/` root filesystem and its
+duplicated icons, compressed documentation, static dependency list, and legacy
+MIME registration were removed.
 
-Mercury-specific `zh-CN` and `zh-TW` wording is maintained separately under
-`l10n/patches/firefox-153/`. These patches apply to the pinned Firefox
-localization repository, not to the Firefox source checkout. See
-[`LOCALIZATION.md`](LOCALIZATION.md).
+External-locale Mercury translations are maintained in the unified
+`l10n/translations.json` catalog. Each entry declares `reviewed` or
+`machine-draft` status and the exact translation target. `prepare_l10n.sh`
+merges this catalog into an isolated checkout of Firefox 153's pinned
+localization repository; no locale-specific patch directory or separate locale
+allowlist is required. See [`LOCALIZATION.md`](LOCALIZATION.md).

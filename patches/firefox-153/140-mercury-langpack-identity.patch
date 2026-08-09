@@ -26,11 +26,24 @@ diff --git a/tools/@types/subs/AppConstants.sys.d.mts b/tools/@types/subs/AppCon
 @@ -108,6 +108,7 @@ export interface AppConstants {
    DLL_SUFFIX: ".dll" | ".so";
  
-   MOZ_APP_NAME: "firefox" | "thunderbird";
+-  MOZ_APP_NAME: "firefox" | "thunderbird";
++  MOZ_APP_NAME: "firefox" | "mercury" | "thunderbird";
 +  MOZ_LANGPACK_EID_HOST: string;
    MOZ_APP_BASENAME: "Firefox";
  
    // N.b.: you almost certainly want brandShortName/brand-short-name:
+diff --git a/python/mozbuild/mozbuild/action/langpack_manifest.py b/python/mozbuild/mozbuild/action/langpack_manifest.py
+--- a/python/mozbuild/mozbuild/action/langpack_manifest.py
++++ b/python/mozbuild/mozbuild/action/langpack_manifest.py
+@@ -213,4 +213,7 @@ def get_title_and_description(app, locale):
+     nameCharLimit = 45
+     descCharLimit = 132
+-    nameTemplate = "Language: {}"
++    if app == "Mercury":
++        nameTemplate = "Mercury Language: {}"
++    else:
++        nameTemplate = "Language: {}"
+     descTemplate = "{} Language Pack for {}"
 diff --git a/intl/locale/LangPackMatcher.sys.mjs b/intl/locale/LangPackMatcher.sys.mjs
 --- a/intl/locale/LangPackMatcher.sys.mjs
 +++ b/intl/locale/LangPackMatcher.sys.mjs

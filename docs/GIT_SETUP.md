@@ -11,6 +11,11 @@ The default checkout directory is `$HOME/firefox` on Linux and macOS, and
 export MOZ_SRC_DIR=/path/to/firefox
 ```
 
+An existing normal checkout or Git worktree can be used. Mercury's setup,
+sync, restore, package, Debian, and localized-repackage scripts identify it
+through Git rather than assuming that `.git` is a directory; bare repositories
+are not valid Firefox build trees.
+
 `bootstrap.sh` checks out `FIREFOX_153_0_3_RELEASE` by default. A different
 release tag, branch, or commit can be selected with:
 

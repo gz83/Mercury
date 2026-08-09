@@ -78,13 +78,17 @@ Debian tooling:
 
 ```bash
 ./package.sh
+export L10NBASEDIR=/tmp/mercury-l10n-153
 ./make_deb.sh
 ```
 
 `make_deb.sh` also accepts an explicit `.tar.xz`, `.tar.bz2`, or `.tar.gz`
 archive. It reads the packaged Mercury ELF header to select `amd64`, `i386`, or
 `arm64`, including for cross-built archives. `DEB_ARCH` can assert an expected
-target, but a value that disagrees with the archive is rejected.
+target, but a value that disagrees with the archive is rejected. The required
+`L10NBASEDIR` must have been created by `prepare_l10n.sh`; `make_deb.sh`
+validates its pinned revisions, schema, review metadata, and content digests
+before invoking Firefox's Debian repackager.
 
 To create a portable package, wrap an existing native package instead of
 changing Firefox's platform packager:
@@ -122,9 +126,10 @@ WebRTC or the other disabled components requires upstream MinGW porting work,
 not merely removing the corresponding `--disable-*` options.
 
 For localized installers, archives, and language packs, follow the reproducible
-workflow in [LOCALIZATION.md](LOCALIZATION.md). Do not add `--with-l10n-base`
-to a mozconfig; Firefox's repack commands consume `L10NBASEDIR` at execution
-time.
+all-Firefox-locale workflow in [LOCALIZATION.md](LOCALIZATION.md). Use
+`repackage_locales.sh` to derive the platform locale set and restore the base
+configuration automatically. Do not add `--with-l10n-base` to a mozconfig;
+Firefox's repack commands consume `L10NBASEDIR` at execution time.
 
 For general platform requirements and troubleshooting, refer to the
 [Firefox build documentation](https://firefox-source-docs.mozilla.org/setup/).

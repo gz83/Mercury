@@ -30,7 +30,8 @@ esac
 MOZ_SRC_DIR="${MOZ_SRC_DIR:-$DEFAULT_MOZ_SRC_DIR}"
 export MOZ_SRC_DIR
 
-if [[ ! -x "$MOZ_SRC_DIR/mach" || ! -d "$MOZ_SRC_DIR/.git" ]]; then
+if [[ ! -x "$MOZ_SRC_DIR/mach" ]] || \
+	[[ "$(git -C "$MOZ_SRC_DIR" rev-parse --is-inside-work-tree 2>/dev/null || true)" != "true" ]]; then
 	echo "Firefox checkout not found at $MOZ_SRC_DIR. Run ./bootstrap.sh and ./setup.sh first." >&2
 	exit 1
 fi
