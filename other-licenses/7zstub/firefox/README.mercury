@@ -20,43 +20,74 @@ an exact binary delta. The decoded changes set CompanyName and LegalCopyright
 to Alex313031, FileDescription to Mercury Browser Installer, ProductName to
 Mercury, and the minimum-system message to Microsoft Windows 10 or newer.
 
-<!-- BEGIN GENERATED SFX BUILD INFO -->
+<!-- BEGIN CURRENT SFX BUILD INFO -->
 The current executables identify themselves as 7-Zip Self-extracting Archive
-18.05 and were rebuilt from the patched Firefox 153 source tree on 2026-08-09.
-The build used Firefox commit
-`0c39e9282688363f5028d0541c17784f7fa5117c`, Mercury commit
-`b80dd4d4b976cfb4787cc722352dfe00fb1add79`, MSBuild 17.14.51.32402, and
-Windows SDK 10.0.22621.0. The corresponding GitHub Actions run is
-https://github.com/gz83/Mercury/actions/runs/31299823531.
+18.05 and were rebuilt from the patched Firefox 153 source tree at
+2026-08-09T06:52:34Z. The build inputs and environment recorded by the workflow
+were:
+
+- Firefox repository: `mozilla-firefox/firefox`
+- Firefox commit: `0c39e9282688363f5028d0541c17784f7fa5117c`
+  (`FIREFOX_153_0_3_RELEASE`)
+- Mercury commit: `b80dd4d4b976cfb4787cc722352dfe00fb1add79`
+- Runner image: `win22` version `20260802.262.1`
+- MSBuild: 17.14.51.32402 with the v142 project toolset
+- Windows SDK: 10.0.22621.0
+- setup.ico SHA-256:
+  `750392f32047ff5c5c02c025fb4c2f7eb11ccdb1565ccaa790752ba8633aa698`
+- patch 170 SHA-256:
+  `75fdbd1a9d775e34737a7b0adea020a783031a79884d9fb24953fa658350f67c`
+- GitHub Actions run:
+  https://github.com/gz83/Mercury/actions/runs/31299823531
 
 Current checked-in executable hashes:
 
     76050b1dc74e7a8daae13fdac18c0c3280547136e29a4c2a45790870c89ac247  7zSD.Win32.sfx
     a3d648e42be18d709256bc3feadb1de1785c02337d01dc1a9b0d9053ac0c3c4e  7zSD.ARM64.sfx
-<!-- END GENERATED SFX BUILD INFO -->
+<!-- END CURRENT SFX BUILD INFO -->
 
 Rebuild procedure
 -----------------
 
 The preferred rebuild path is the manually dispatched
-`.github/workflows/rebuild-windows-sfx.yml` workflow. It verifies both outputs,
-and uploads them with SHA256SUMS.txt, BUILDINFO.json, and build provenance. The
-workflow never modifies the repository. Download its artifact, inspect the
-metadata, and manually replace both checked-in SFX files. Preserve BUILDINFO.json
-with the release records and update the generated hash block above. The
-workflow pins Windows SDK 10.0.22621.0 because the project's v142 ARM64
-compiler is incompatible with the newer 10.0.26100.0 headers selected by an
-unqualified `WindowsTargetPlatformVersion=10.0`. For a local rebuild:
+`.github/workflows/rebuild-windows-sfx.yml` workflow. It verifies both outputs
+and uploads an artifact containing the two executables, SHA256SUMS.txt, and
+BUILDINFO.json. GitHub's build-provenance attestation is published separately
+by the same run. The workflow has read-only repository access and never commits
+the generated files.
 
-1. Run setup.sh against FIREFOX_153_0_3_RELEASE so patch 170 and setup.ico are
-   present in the Firefox checkout.
-2. Follow other-licenses/7zstub/README.mozilla in that checkout.
-3. Open other-licenses/7zstub/firefox/SFXSetup.sln with the Visual Studio 2022
-   C++ x86 and ARM64 toolchains.
-4. Build the ReleaseD configuration for x86 and ARM64.
-5. Replace 7zSD.Win32.sfx and 7zSD.ARM64.sfx in this directory.
-6. Verify both files' version resources, icon, architecture, minimum-Windows
-   message, and SHA-256 hashes. Then build and launch each Windows installer.
+After downloading the artifact, verify SHA256SUMS.txt before manually replacing
+both checked-in SFX files. SHA256SUMS.txt and BUILDINFO.json are provenance
+sidecars rather than Firefox packaging inputs, so they are not copied by
+setup.sh or stored in this overlay directory; preserve them with the release
+records. Update the current build-info block above whenever the executables
+are replaced.
+
+The workflow pins Windows SDK 10.0.22621.0 because the project's v142 ARM64
+compiler is incompatible with the newer 10.0.26100.0 headers selected by an
+unqualified `WindowsTargetPlatformVersion=10.0`.
+
+For an equivalent local rebuild:
+
+1. Check out Firefox commit
+   `0c39e9282688363f5028d0541c17784f7fa5117c` in a clean tree. There is no need
+   to run the full Mercury setup.sh solely to rebuild these files.
+2. Apply `patches/firefox-153/170-mercury-windows-sfx-branding.patch` to the
+   Firefox checkout and copy this directory's setup.ico over Firefox's
+   `other-licenses/7zstub/firefox/setup.ico`.
+3. Install Visual Studio 2022 with the MSVC v142 x86/x64 and ARM64 build tools
+   plus Windows SDK 10.0.22621.0. Do not retarget the project to an unrecorded
+   toolset or SDK when matching the checked-in build configuration.
+4. Build both ReleaseD targets from the Firefox checkout:
+
+       msbuild other-licenses\7zstub\firefox\SFXSetup.sln /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=x86 /p:WindowsTargetPlatformVersion=10.0.22621.0
+       msbuild other-licenses\7zstub\firefox\SFXSetup.sln /m /t:Rebuild /p:Configuration=ReleaseD /p:Platform=ARM64 /p:WindowsTargetPlatformVersion=10.0.22621.0
+
+5. Replace 7zSD.Win32.sfx with `Win32\ReleaseD\7zSD.Win32.sfx` and replace
+   7zSD.ARM64.sfx with `ARM64\ReleaseD\7zSD.ARM64.sfx`.
+6. Verify both files' SHA-256 hashes, PE machine types, version resources,
+   embedded icons, and Windows 10 minimum-version messages. Then build and
+   launch each corresponding Windows installer.
 
 Regenerate both executables whenever Firefox changes any file under
 other-licenses/7zstub, even if Firefox does not update its checked-in binaries
