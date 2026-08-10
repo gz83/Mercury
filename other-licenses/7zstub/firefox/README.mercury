@@ -10,13 +10,14 @@ ordinary text patches:
 
 Firefox deliberately checks prebuilt SFX executables into its source tree so
 that packaging does not require Visual Studio. Mercury follows that model but
-keeps all editable resource changes in
-patches/firefox-153/170-mercury-windows-sfx-branding.patch. setup.sh copies
+keeps all editable resource changes in the patch carrying the `windows-sfx`
+role in `patches/manifest.json`. setup.py copies
 only these three files over the pinned Firefox tree; it does not replace the
 7-Zip/LZMA SDK source or build projects.
 
-Firefox stores resource.rc with CRLF line endings, so Git encodes patch 170 as
-an exact binary delta. The decoded changes set CompanyName and LegalCopyright
+Firefox stores resource.rc with CRLF line endings, so Git encodes the
+`windows-sfx` patch as an exact binary delta. The decoded changes set
+CompanyName and LegalCopyright
 to Alex313031, FileDescription to Mercury Browser Installer, ProductName to
 Mercury, and the minimum-system message to Microsoft Windows 10 or newer.
 
@@ -35,7 +36,7 @@ were:
 - Windows SDK: 10.0.22621.0
 - setup.ico SHA-256:
   `750392f32047ff5c5c02c025fb4c2f7eb11ccdb1565ccaa790752ba8633aa698`
-- patch 170 SHA-256:
+- `windows-sfx` patch SHA-256:
   `75fdbd1a9d775e34737a7b0adea020a783031a79884d9fb24953fa658350f67c`
 - GitHub Actions run:
   https://github.com/gz83/Mercury/actions/runs/31299823531
@@ -59,7 +60,7 @@ the generated files.
 After downloading the artifact, verify SHA256SUMS.txt before manually replacing
 both checked-in SFX files. SHA256SUMS.txt and BUILDINFO.json are provenance
 sidecars rather than Firefox packaging inputs, so they are not copied by
-setup.sh or stored in this overlay directory; preserve them with the release
+setup.py or stored in this overlay directory; preserve them with the release
 records. Update the current build-info block above whenever the executables
 are replaced.
 
@@ -71,9 +72,9 @@ For an equivalent local rebuild:
 
 1. Check out Firefox commit
    `0c39e9282688363f5028d0541c17784f7fa5117c` in a clean tree. There is no need
-   to run the full Mercury setup.sh solely to rebuild these files.
-2. Apply `patches/firefox-153/170-mercury-windows-sfx-branding.patch` to the
-   Firefox checkout and copy this directory's setup.ico over Firefox's
+   to run the full Mercury setup.py solely to rebuild these files.
+2. Apply the patch carrying the `windows-sfx` role in `patches/manifest.json`
+   to the Firefox checkout and copy this directory's setup.ico over Firefox's
    `other-licenses/7zstub/firefox/setup.ico`.
 3. Install Visual Studio 2022 with the MSVC v142 x86/x64 and ARM64 build tools
    plus Windows SDK 10.0.22621.0. Do not retarget the project to an unrecorded

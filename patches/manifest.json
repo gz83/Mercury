@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "patches": [
+    {
+      "file": "mercury-default-preferences.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-customizable-ui.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-app-branding.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-distribution-policy.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-build-configuration.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-default-bookmarks.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-windows-installer.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-localization.patch",
+      "roles": [
+        "l10n-reference",
+        "localized-repackage"
+      ]
+    },
+    {
+      "file": "mercury-lto-tuning.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-devtools-branding.patch",
+      "roles": []
+    },
+    {
+      "file": "debian-package-identity.patch",
+      "roles": [
+        "l10n-reference",
+        "localized-repackage",
+        "debian-repackage"
+      ]
+    },
+    {
+      "file": "mercury-plugin-container-branding.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-langpack-identity.patch",
+      "roles": [
+        "localized-repackage"
+      ]
+    },
+    {
+      "file": "mercury-user-agent-compatibility.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-profileserver-software-rendering.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-windows-sfx-branding.patch",
+      "roles": [
+        "windows-sfx"
+      ]
+    }
+  ]
+}

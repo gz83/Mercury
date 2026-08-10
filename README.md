@@ -8,11 +8,11 @@ It aims to be the Firefox equivalent of my main project: [Thorium](https://githu
 
 ## Patches <img src="docs/assets/patches.png" width="28">
 
-See [the patch manifest](docs/PATCHES.md) for the Firefox base, versioned
-patches, and retained source overlays.
+See [the patch manifest](docs/PATCHES.md) for the Firefox base,
+release-targeted patches, and retained source overlays.
 
 ## Building <img src="docs/assets/build_light.svg#gh-dark-mode-only"> <img src="docs/assets/build_dark.svg#gh-light-mode-only">
 
 See [the build guide](docs/BUILDING.md), [Firefox Git setup](docs/GIT_SETUP.md),
-and [debugging guide](docs/DEBUGGING.md). The complete documentation index is
-in [docs/README.md](docs/README.md).
+[release guide](docs/RELEASING.md), and [debugging guide](docs/DEBUGGING.md).
+The complete documentation index is in [docs/README.md](docs/README.md).

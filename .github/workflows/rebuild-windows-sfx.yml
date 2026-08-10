@@ -15,7 +15,6 @@ permissions:
 
 env:
   FIREFOX_REPOSITORY: mozilla-firefox/firefox
-  FIREFOX_COMMIT: 0c39e9282688363f5028d0541c17784f7fa5117c
   WINDOWS_SDK_VERSION: 10.0.22621.0
 
 jobs:
@@ -32,11 +31,59 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Check out the pinned Firefox 153 source
+      - name: Read the pinned release metadata
+        id: release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $configPath = Join-Path $env:GITHUB_WORKSPACE 'mercury\release.json'
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\manifest.json'
+          $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+          $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+          $version = [string]$config.firefox.version
+          $commit = [string]$config.firefox.commit
+          $release = [string]$config.firefox.release
+
+          if ($config.schemaVersion -ne 1) {
+            throw "Unsupported release metadata schema in $configPath."
+          }
+          if ($version -notmatch '^[0-9]+(?:\.[0-9]+)+$') {
+            throw 'The pinned Firefox version is invalid.'
+          }
+          if ($commit -notmatch '^[0-9a-f]{40}$') {
+            throw 'The pinned Firefox commit is invalid.'
+          }
+          if ($release -notmatch '^FIREFOX_[A-Z0-9_]+_RELEASE$') {
+            throw 'The pinned Firefox release tag is invalid.'
+          }
+          if ($manifest.schemaVersion -ne 1) {
+            throw "Unsupported patch manifest schema in $manifestPath."
+          }
+          $sfxPatches = @(
+            $manifest.patches | Where-Object { @($_.roles) -contains 'windows-sfx' }
+          )
+          if ($sfxPatches.Count -ne 1) {
+            throw 'The patch manifest must define exactly one windows-sfx patch.'
+          }
+          $sfxPatchFile = [string]$sfxPatches[0].file
+          if ($sfxPatchFile -notmatch '^[a-z0-9]+(?:-[a-z0-9]+)*\.patch$') {
+            throw 'The windows-sfx patch filename is invalid.'
+          }
+          $sfxPatchPath = Join-Path $env:GITHUB_WORKSPACE "mercury\patches\firefox\$sfxPatchFile"
+          if (-not (Test-Path -LiteralPath $sfxPatchPath -PathType Leaf)) {
+            throw "The declared windows-sfx patch is missing: $sfxPatchPath"
+          }
+          "firefox_commit=$commit" >> $env:GITHUB_OUTPUT
+          "FIREFOX_VERSION=$version" >> $env:GITHUB_ENV
+          "FIREFOX_COMMIT=$commit" >> $env:GITHUB_ENV
+          "FIREFOX_RELEASE=$release" >> $env:GITHUB_ENV
+          "SFX_PATCH_FILE=$sfxPatchFile" >> $env:GITHUB_ENV
+
+      - name: Check out the pinned Firefox source
         uses: actions/checkout@v6
         with:
           repository: ${{ env.FIREFOX_REPOSITORY }}
-          ref: ${{ env.FIREFOX_COMMIT }}
+          ref: ${{ steps.release.outputs.firefox_commit }}
           path: firefox
           fetch-depth: 1
           persist-credentials: false
@@ -46,7 +93,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $patch = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\firefox-153\170-mercury-windows-sfx-branding.patch'
+          $patch = Join-Path $env:GITHUB_WORKSPACE "mercury\patches\firefox\$env:SFX_PATCH_FILE"
           $firefox = Join-Path $env:GITHUB_WORKSPACE 'firefox'
           $sfx = Join-Path $firefox 'other-licenses\7zstub\firefox'
           $icon = Join-Path $env:GITHUB_WORKSPACE 'mercury\other-licenses\7zstub\firefox\setup.ico'
@@ -161,11 +208,14 @@ jobs:
           $msbuildVersion = ((msbuild -version -nologo) | Select-Object -Last 1).Trim()
           $builtAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
           $setupIcon = Join-Path $env:GITHUB_WORKSPACE 'mercury\other-licenses\7zstub\firefox\setup.ico'
-          $sfxPatch = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\firefox-153\170-mercury-windows-sfx-branding.patch'
+          $sfxPatch = Join-Path $env:GITHUB_WORKSPACE "mercury\patches\firefox\$env:SFX_PATCH_FILE"
+          $patchManifest = Join-Path $env:GITHUB_WORKSPACE 'mercury\patches\manifest.json'
           $buildInfo = [ordered]@{
             schemaVersion = 1
             firefoxRepository = $env:FIREFOX_REPOSITORY
+            firefoxVersion = $env:FIREFOX_VERSION
             firefoxCommit = $env:FIREFOX_COMMIT
+            firefoxRelease = $env:FIREFOX_RELEASE
             mercuryCommit = $env:GITHUB_SHA
             workflowRun = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
             runnerImage = $env:ImageOS
@@ -175,6 +225,7 @@ jobs:
             builtAtUtc = $builtAt
             setupIconSha256 = (Get-FileHash -LiteralPath $setupIcon -Algorithm SHA256).Hash.ToLowerInvariant()
             sfxPatchSha256 = (Get-FileHash -LiteralPath $sfxPatch -Algorithm SHA256).Hash.ToLowerInvariant()
+            patchManifestSha256 = (Get-FileHash -LiteralPath $patchManifest -Algorithm SHA256).Hash.ToLowerInvariant()
             artifacts = @(
               [ordered]@{ name = '7zSD.Win32.sfx'; machine = 'I386'; sha256 = $hashes['7zSD.Win32.sfx'] },
               [ordered]@{ name = '7zSD.ARM64.sfx'; machine = 'ARM64'; sha256 = $hashes['7zSD.ARM64.sfx'] }

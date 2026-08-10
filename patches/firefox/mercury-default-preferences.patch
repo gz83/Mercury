@@ -87,7 +87,7 @@ diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
 +pref("layout.css.grid-template-masonry-value.enabled", true);
 +
 +// Mercury/Betterfox performance defaults retained after comparison with the
-+// Firefox 153 owners in StaticPrefList.yaml and all.js.
++// Owners audited in StaticPrefList.yaml and all.js.
 +pref("nglayout.initialpaint.delay", 0);
 +pref("nglayout.initialpaint.delay_in_oopif", 0);
 +pref("content.notify.interval", 100000);

@@ -1,4 +1,4 @@
-## Copyright (c) 2024 Alex313031.
+# Copyright (c) 2026 Alex313031 and gz83.
 
 ## .mozconfig for compiling Mercury Browser for Windows natively
 
@@ -37,7 +37,7 @@ export MOZ_REQUIRE_SIGNING=
 export MOZ_TELEMETRY_REPORTING=
 export MOZ_PACKAGE_JSSHELL=1
 
-# API Keys (Google Location Service key is unavailable on WINNT in Firefox 153.)
+# API Keys (Google Location Service key is unavailable on WINNT.)
 ac_add_options --with-google-safebrowsing-api-keyfile=@TOPSRCDIR@/ga
 
 # Branding

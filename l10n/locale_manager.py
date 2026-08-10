@@ -14,9 +14,15 @@ import zipfile
 import zlib
 from pathlib import Path
 
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
 
-EXPECTED_L10N_REVISION = "6795ea14a5bd5ed79a930e6759823c7236476ae4"
-EXPECTED_FIREFOX_COMMIT = "0c39e9282688363f5028d0541c17784f7fa5117c"
+from release_config import FIREFOX_COMMIT, L10N_COMMIT
+
+
+EXPECTED_L10N_REVISION = L10N_COMMIT
+EXPECTED_FIREFOX_COMMIT = FIREFOX_COMMIT
 MARKER_NAME = ".mercury-l10n.json"
 MARKER_SCHEMA_VERSION = 6
 LANGPACK_EID_HOST = "mercury.alex313031.github.io"
@@ -428,9 +434,8 @@ def controlled_resources_sha256(workspace: Path, locales: list[str]) -> str:
 
 
 def validate_fluent_resources(
-    workspace: Path, reference_root: Path, locales: list[str]
+    workspace: Path, firefox_root: Path, locales: list[str]
 ) -> None:
-    firefox_root = reference_root.parents[2]
     fluent_dependency = firefox_root / "third_party/python/fluent.syntax"
     if not fluent_dependency.is_dir():
         raise ValueError(
@@ -543,7 +548,7 @@ def command_apply_translations(args: argparse.Namespace) -> int:
             target.write_text("".join(lines), encoding="utf-8")
 
     validate_fluent_resources(
-        args.workspace, args.reference_root, supported_locales
+        args.workspace, args.firefox_root, supported_locales
     )
 
     for locale in supported_locales:
@@ -626,7 +631,7 @@ def load_marker(
     if not marker_path.is_file():
         raise ValueError(
             f"Mercury localization marker is missing: {marker_path}. "
-            "Run prepare_l10n.sh first."
+            "Run prepare_l10n.py first."
         )
     marker = json.loads(marker_path.read_text(encoding="utf-8"))
     if not isinstance(marker, dict):
@@ -808,7 +813,9 @@ def validate_language_pack(path: Path, locale: str) -> str | None:
         "base_path": "browser/"
     }:
         return "language-pack browser source mapping is invalid"
-    if not any(name.startswith("browser/") and not name.endswith("/") for name in members):
+    if not any(
+        name.startswith("browser/") and not name.endswith("/") for name in members
+    ):
         return "language pack contains no browser localization resources"
     return None
 
@@ -1006,6 +1013,7 @@ def build_parser() -> argparse.ArgumentParser:
     translation_parser.add_argument("--changesets", type=Path, required=True)
     translation_parser.add_argument("--workspace", type=Path, required=True)
     translation_parser.add_argument("--reference-root", type=Path, required=True)
+    translation_parser.add_argument("--firefox-root", type=Path, required=True)
     translation_parser.add_argument("--translations", type=Path, required=True)
     translation_parser.add_argument("--firefox-commit", required=True)
     translation_parser.set_defaults(handler=command_apply_translations)

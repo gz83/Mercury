@@ -1,4 +1,4 @@
-# Firefox 153 preference migration
+# Mercury preference migration for Firefox 153
 
 This audit is tied to Firefox tag `FIREFOX_153_0_3_RELEASE`, commit
 `0c39e9282688363f5028d0541c17784f7fa5117c`. The source delta was extracted
@@ -7,8 +7,8 @@ from Mercury's `app/profile/firefox.js` against Firefox 129.0.2; it contains
 `devtools.command-button-experimental-prefs.enabled`).
 
 The complete set of retained defaults is the final block added by
-`patches/firefox-153/010-mercury-default-preferences.patch`. The old complete
-copy of `firefox.js` must not be restored: doing so would replace about 500
+`patches/firefox/mercury-default-preferences.patch`. The old complete
+copy of `firefox.js` must not be restored: doing so would replace nearly 400
 lines of Firefox 153 defaults and features with Firefox 129 code.
 
 ## Ownership and validity
@@ -21,18 +21,27 @@ The patch deliberately keeps product overrides together at the end of
 | `browser/app/profile/firefox.js` | Browser UI, startup, session restore, update, discovery, Normandy, telemetry sender switches, FxA promotion, Sync-registration, and DevTools defaults |
 | `modules/libpref/init/StaticPrefList.yaml` | DNT/GPC, rendering, JXL, EME, CSS masonry, media/image caches, DNS cache, TLS cache, initial paint, and GTK overlay-scrollbar preferences |
 | `modules/libpref/init/all.js` | User-agent compatibility and HTTP/WebSocket/buffer/prefetch defaults |
-| `browser/extensions/newtab/lib/ActivityStream.sys.mjs` | New Tab sites, rows, stories, sponsored content, and New Tab telemetry; `DefaultPrefs.init()` explicitly preserves an application default already registered by `firefox.js` |
-| Runtime pref consumers | `toolkit.telemetry.enabled`, `browser.newtabpage.activity-stream.feeds.system.topstories`, Mercury's disabled Firefox language-pack endpoint/update coordination, and the generic `services.sync.prefs.sync.*` registrations |
+| `browser/extensions/newtab/lib/ActivityStream.sys.mjs`, `browser/extensions/newtab/lib/SectionsManager.sys.mjs` | New Tab sites, rows, stories, sponsored content, and New Tab telemetry; `DefaultPrefs.init()` explicitly preserves an application default already registered by `firefox.js` |
+| `toolkit/mozapps/extensions/internal/AddonRepository.sys.mjs` | Firefox language-pack discovery through `extensions.getAddons.langpacks.url` |
+| `toolkit/mozapps/update/BackgroundUpdate.sys.mjs` | Language-pack coordination during application and background updates through `app.update.langpack.enabled` |
+| Other runtime pref consumers | `toolkit.telemetry.enabled`, `browser.newtabpage.activity-stream.feeds.system.topstories`, and the generic `services.sync.prefs.sync.*` registrations |
 
-All 87 directly migrated keys have either an active Firefox 153 definition, an
-active runtime consumer, or a generic branch consumer. Two current equivalents
-were added: `browser.newtabpage.activity-stream.telemetry=false` replaces the
-dead Ping Centre switch, and
-`browser.newtabpage.activity-stream.system.showSponsored=false` replaces the
-removed granular Pocket/Discovery Stream advertising switches.
+The retained block contains 91 unique keys: 87 directly migrated defaults and
+four current replacements or Mercury product controls. Every key has an active
+Firefox 153 definition, a runtime consumer, or (for Sync registrations) a
+generic branch consumer. The four current additions are:
+
+- `browser.newtabpage.activity-stream.telemetry=false`, replacing the dead Ping
+  Centre switch;
+- `browser.newtabpage.activity-stream.system.showSponsored=false`, replacing
+  removed granular Pocket/Discovery Stream advertising switches;
+- `extensions.getAddons.langpacks.url=""`, preventing Firefox language packs
+  from being fetched from AMO alongside Mercury language packs; and
+- `app.update.langpack.enabled=false`, leaving language-pack update coordination
+  to Mercury's release and localization process.
 
 The old `browser.uiCustomization.state` was not copied verbatim. Its intent is
-migrated in `patches/firefox-153/020-mercury-customizable-ui.patch`, against the
+migrated in `patches/firefox/mercury-customizable-ui.patch`, against the
 Firefox 153 `CustomizableUI` owner: Home, Developer Tools and Unified Extensions
 remain in the navbar; Firefox View, springs, vertical spacer, sidebar and IP
 Protection are omitted from Mercury's default placements. The obsolete v18
@@ -46,7 +55,7 @@ This table accounts for every remaining Firefox 129-era delta.
 
 | Preference(s) | Firefox 153 result |
 | --- | --- |
-| `browser.uiCustomization.state` | Replaced by the owner-level `020-mercury-customizable-ui.patch`; the stale serialized v19 state is not copied. |
+| `browser.uiCustomization.state` | Replaced by the owner-level `mercury-customizable-ui.patch`; the stale serialized v19 state is not copied. |
 | `browser.attribution.enabled`, `browser.shell.defaultBrowserAgent.thanksURL`, `browser.theme.colorway-migration` | Removed with no current consumer or replacement pref. |
 | `browser.shopping.experience2023.active`, `browser.shopping.experience2023.autoOpen.userEnabled`, `browser.shopping.experience2023.survey.enabled` | The 2023 Review Checker implementation and these switches were removed. |
 | `extensions.pocket.api`, `extensions.pocket.bffApi`, `extensions.pocket.bffRecentSaves`, `extensions.pocket.enabled`, `extensions.pocket.oAuthConsumerKey`, `extensions.pocket.oAuthConsumerKeyBff`, `extensions.pocket.showHome`, `extensions.pocket.site` | The old Pocket extension integration was removed. Current Stories and sponsored-content controls are migrated through active Activity Stream prefs. |
@@ -75,20 +84,47 @@ This table accounts for every remaining Firefox 129-era delta.
   `app.update.langpack.enabled=false` disables Firefox's special app-update and
   background-update coordination for installed language packs. Mercury
   language packs must be installed and updated from Mercury release artifacts.
+- `layers.acceleration.force-enabled=true` can bypass Firefox GPU/driver
+  blocklisting. It may improve acceleration availability, but can reduce
+  stability or rendering correctness on unsupported hardware and drivers.
 - `image.jxl.enabled=true` requires a build with `MOZ_JXL`; Mercury's mozconfigs
   use `--enable-jxl`.
 - `media.eme.enabled=true` makes EME visible and enabled on Linux and can cause
   proprietary DRM components to be downloaded.
 - `app.update.auto=false` remains a default/migration value on Windows; after
-  migration Firefox stores the actual choice in the update directory.
+  migration Firefox stores the actual choice in the update directory. Mercury
+  mozconfigs also use `--disable-updater`, so this preference is not a substitute
+  for an update mechanism. Users must update through Mercury release artifacts
+  or the package manager that supplied Mercury.
 - `toolkit.telemetry.enabled` may be locked by Firefox channel/build policy.
   The retained granular sender switches are independently set to `false`.
+- `privacy.donottrackheader.enabled` and
+  `privacy.globalprivacycontrol.enabled` send preference signals to sites; they
+  do not guarantee that a site will honor those signals.
+- The high connection limits and enlarged DNS, TLS, media, image, and buffer
+  caches are workload-dependent tuning choices. They can retain more memory and
+  network resources and must not be treated as universally faster defaults.
+- Disabling DNS prefetch, link prefetch, and speculative parallel connections
+  reduces speculative networking but can increase navigation latency.
 - These are default-branch values. Existing profiles can have user-branch
   values that take precedence, except where Firefox locks a preference.
 
 ## Re-audit procedure
 
-For a later Firefox release, diff Mercury's patch against the new upstream
-`browser/app/profile/firefox.js`, then verify every key in the owner areas
-above. A patch that fails `git apply --check` must be re-audited rather than
-forced onto a different Firefox revision.
+For a later Firefox release:
+
+1. Pin the exact upstream tag and commit in `release.json`, and verify that
+   `mercury-default-preferences.patch` passes `git apply --check` against that
+   checkout. A failing patch must be re-audited rather than forced onto another
+   revision.
+2. Extract and count the unique preference names in the retained block. Account
+   explicitly for additions, removals, renames, and replacements instead of
+   assuming the Firefox 153 total of 91 still applies.
+3. Search the new upstream tree for each definition and runtime consumer. For
+   `services.sync.prefs.sync.*`, also inspect the generic Sync branch consumer;
+   absence of a full-string match alone does not make a registration dead.
+4. Compare upstream defaults and build-time feature flags, especially updater,
+   signing, JXL, telemetry, EME, New Tab, and GPU behavior.
+5. Run `python3 setup.py --check`, then test both a fresh profile and an existing
+   profile because user-branch and migrated values can override application
+   defaults.
