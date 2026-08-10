@@ -41,6 +41,18 @@
       "roles": []
     },
     {
+      "file": "mercury-avx-runtime-detection.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-skia-avx2-compatibility.patch",
+      "roles": []
+    },
+    {
+      "file": "mercury-git-source-provenance.patch",
+      "roles": []
+    },
+    {
       "file": "mercury-devtools-branding.patch",
       "roles": []
     },
@@ -61,10 +73,6 @@
       "roles": [
         "localized-repackage"
       ]
-    },
-    {
-      "file": "mercury-user-agent-compatibility.patch",
-      "roles": []
     },
     {
       "file": "mercury-profileserver-software-rendering.patch",

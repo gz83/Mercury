@@ -31,16 +31,18 @@ for a specialized consumer; it is not an application filter:
 | `mercury-customizable-ui.patch` | Mercury toolbar defaults and UI migrations |
 | `mercury-app-branding.patch` | Mercury title for early Windows launcher errors |
 | `mercury-distribution-policy.patch` | Package Mercury's `distribution/policies.json` |
-| `mercury-build-configuration.patch` | Select Mercury branding and build-time product options |
+| `mercury-build-configuration.patch` | Select Mercury branding and build-time product options, including its Firefox-compatible UA name and isolated profile through `imply_option` |
 | `mercury-default-bookmarks.patch` | Mercury's default toolbar bookmarks on the Firefox 153 template |
 | `mercury-windows-installer.patch` | Windows installer branding, MSIX color, isolated reset marker, and disabled Mozilla uninstall survey |
 | `mercury-localization.patch` | Mercury-specific About dialog and network error wording |
 | `mercury-lto-tuning.patch` | Raise Clang's ThinLTO import instruction limit for Mercury performance builds |
+| `mercury-avx-runtime-detection.patch` | Keep Firefox's AVX helper available when BMI or BMI2 still requires runtime detection, allowing AVX2 builds to retain compatibility with CPUs that lack those optional extensions |
+| `mercury-skia-avx2-compatibility.patch` | Select Skia's ML3 default implementation only when AVX2, FMA, F16C, BMI, and BMI2 are all guaranteed; minimal AVX2 builds retain runtime ML3 dispatch without requiring those optional extensions |
+| `mercury-git-source-provenance.patch` | Generate Firefox's source metadata from a Git checkout's normalized origin URL and exact HEAD so official local packages receive a valid sourcestamp without version-coupled mozconfig values |
 | `mercury-devtools-branding.patch` | Use Mercury branding for the local `about:debugging` runtime without replacing remote Firefox and Fenix channel icons |
 | `debian-package-identity.patch` | Give Firefox's application and language-pack Debian repackagers Mercury package/install identities and generate localized desktop entries from Mercury branding |
 | `mercury-plugin-container-branding.patch` | Use Mercury's company name in the Windows `plugin-container.exe` version resource |
-| `mercury-langpack-identity.patch` | Give Mercury language packs product-specific names and IDs, and keep runtime fallback plus optional crash-reporter and MSIX code paths consistent |
-| `mercury-user-agent-compatibility.patch` | Keep Mercury's network User-Agent Firefox-compatible without replacing Firefox 153's HTTP handler |
+| `mercury-langpack-identity.patch` | Give Mercury language packs product-specific names and IDs, export the ID host to runtime constants, and keep fallback plus optional crash-reporter and MSIX code paths consistent |
 | `mercury-profileserver-software-rendering.patch` | Make PGO profile generation independent of target GPU and driver availability |
 | `mercury-windows-sfx-branding.patch` | Brand the Windows 7-Zip self-extractor source and report Mercury's Windows 10 minimum |
 
@@ -155,9 +157,12 @@ binary patch only because the upstream file is stored with unnormalized CRLF
 line endings.
 
 The Firefox 129 `netwerk/protocol/http/nsHttpHandler.cpp` overlay differed from
-its upstream baseline by one User-Agent compatibility line.
-`mercury-user-agent-compatibility.patch` carries that line on Firefox 153 and
-avoids reverting the current HTTP implementation.
+its upstream baseline by one User-Agent compatibility line. Firefox 153 owns
+`MOZ_APP_UA_NAME` and `MOZ_APP_PROFILE` as project flags, so
+`mercury-build-configuration.patch` now supplies `Firefox` and `mercury`
+through `imply_option`. The native HTTP handler therefore recognizes Mercury
+as Firefox-compatible without a C++ patch, and the obsolete handler patch was
+removed.
 
 The old whole-file profileserver preference overlay was replaced by
 `mercury-profileserver-software-rendering.patch`, which carries only Mercury's

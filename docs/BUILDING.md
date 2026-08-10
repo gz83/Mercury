@@ -131,7 +131,9 @@ Firefox's platform packager:
 ./make_portable.py /path/to/mercury-windows.zip
 ```
 
-Both portable formats add a launcher and sibling `USER_DATA/` profile directory.
+Linux input is converted to a ZIP matching Mercury's historical release layout;
+Windows input remains a ZIP. Both portable formats add a launcher that creates
+a sibling `USER_DATA/` profile directory when first run.
 Native Clang/clang-cl is the primary Windows release configuration; MinGW is a
 reduced-function compatibility target. See
 [system requirements](SYSTEM_REQUIREMENTS.md) for its feature limitations.

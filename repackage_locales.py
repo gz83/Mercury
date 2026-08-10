@@ -4,13 +4,15 @@
 
 # Copyright (c) 2026 Alex313031 and gz83.
 
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from bootstrap import (
     default_source_directory,
@@ -38,7 +40,13 @@ Usage: ./repackage_locales.py --platform PLATFORM [options]
 
 Options:
   --platform PLATFORM  linux, windows, or macos (required)
-  --dest DIRECTORY     Artifact directory (default: /tmp/mercury-localized-PLATFORM)
+  --all-locales        Repackage every locale supported by the target
+  --locales LOCALE...  Repackage only the listed locales
+  --locales-file FILE  Read locales from FILE (one per line; # comments allowed)
+  --package FILE       Local en-US package to repackage (or MERCURY_PACKAGE)
+  --dest DIRECTORY     Artifact directory (defaults under the system temp directory)
+  --resume             Validate and skip complete artifacts already in --dest
+  --langpacks-only     Build and publish only language-pack XPIs
   --dry-run            Validate and print the locale set without building
   -v, --verbose        Enable verbose Firefox repackaging output
   -h, --help           Show this help
@@ -50,6 +58,43 @@ en-US on exit.
 """
 
 SUPPORTED_PLATFORMS = {"linux", "windows", "macos"}
+
+PROFILE_ARTIFACT_TAGS = {
+    "mozconfig": ("linux", "linux-x86_64-avx"),
+    "mozconfig-sse3": ("linux", "linux-x86_64-sse3"),
+    "mozconfig-sse4": ("linux", "linux-x86_64-sse4"),
+    "mozconfig-avx2": ("linux", "linux-x86_64-avx2"),
+    "mozconfig-arm64": ("linux", "linux-aarch64-arm64"),
+    "mozconfig-debug": ("linux", "linux-x86_64-avx-debug"),
+    "mozconfig-win": ("windows", "windows-x86_64-avx"),
+    "mozconfig-win-sse3": ("windows", "windows-x86_64-sse3"),
+    "mozconfig-win-sse4": ("windows", "windows-x86_64-sse4"),
+    "mozconfig-win-avx2": ("windows", "windows-x86_64-avx2"),
+    "mozconfig-win-debug": ("windows", "windows-x86_64-avx-debug"),
+    "mozconfig-win-cross": ("windows", "windows-x86_64-mingw-avx"),
+    "mozconfig-win-avx2-cross": (
+        "windows",
+        "windows-x86_64-mingw-avx2",
+    ),
+    "mozconfig-macos-x64": ("macos", "macos-x86_64-avx2"),
+    "mozconfig-macos-x64-cross": ("macos", "macos-x86_64-avx2"),
+    "mozconfig-macos-arm64": ("macos", "macos-arm64"),
+    "mozconfig-macos-arm64-cross": ("macos", "macos-arm64"),
+}
+
+
+@dataclass(frozen=True)
+class Options:
+    platform: str
+    package: Optional[str]
+    destination: Optional[str]
+    locales: tuple[str, ...]
+    locales_file: Optional[str]
+    all_locales: bool
+    resume: bool
+    langpacks_only: bool
+    dry_run: bool
+    verbose: bool
 
 
 class HelpRequested(Exception):
@@ -64,11 +109,15 @@ class UsageError(Exception):
         self.show_help = show_help
 
 
-def parse_arguments(
-    arguments: List[str],
-) -> Tuple[str, Optional[str], bool, bool]:
+def parse_arguments(arguments: List[str]) -> Options:
     platform = ""
+    package = None
     destination = None
+    locales = []
+    locales_file = None
+    all_locales = False
+    resume = False
+    langpacks_only = False
     dry_run = False
     verbose = False
     index = 0
@@ -79,11 +128,33 @@ def parse_arguments(
                 raise UsageError(f"{argument} requires a value.")
             platform = arguments[index + 1]
             index += 2
-        elif argument == "--dest":
+        elif argument in {"--package", "--dest", "--locales-file"}:
             if index + 1 >= len(arguments):
-                raise UsageError(f"{argument} requires a directory.")
-            destination = arguments[index + 1]
+                raise UsageError(f"{argument} requires a value.")
+            if argument == "--package":
+                package = arguments[index + 1]
+            elif argument == "--dest":
+                destination = arguments[index + 1]
+            else:
+                locales_file = arguments[index + 1]
             index += 2
+        elif argument == "--locales":
+            index += 1
+            start = index
+            while index < len(arguments) and not arguments[index].startswith("-"):
+                locales.append(arguments[index])
+                index += 1
+            if index == start:
+                raise UsageError("--locales requires at least one locale.")
+        elif argument == "--all-locales":
+            all_locales = True
+            index += 1
+        elif argument == "--resume":
+            resume = True
+            index += 1
+        elif argument == "--langpacks-only":
+            langpacks_only = True
+            index += 1
         elif argument == "--dry-run":
             dry_run = True
             index += 1
@@ -99,7 +170,25 @@ def parse_arguments(
         raise UsageError("--platform is required.")
     if platform not in SUPPORTED_PLATFORMS:
         raise UsageError(f"Unsupported platform: {platform}")
-    return platform, destination, dry_run, verbose
+    selection_count = int(all_locales) + int(bool(locales)) + int(
+        locales_file is not None
+    )
+    if selection_count != 1:
+        raise UsageError(
+            "Select exactly one of --all-locales, --locales, or --locales-file."
+        )
+    return Options(
+        platform,
+        package,
+        destination,
+        tuple(locales),
+        locales_file,
+        all_locales,
+        resume,
+        langpacks_only,
+        dry_run,
+        verbose,
+    )
 
 
 def process_output(command: List[str]) -> str:
@@ -138,7 +227,12 @@ def run_manifest(
     output: Path,
     platform: str,
     overall: str,
+    locales: List[str],
+    artifact_tag: str,
+    artifact_kind: str,
+    resumed_locales: Optional[List[str]] = None,
 ) -> None:
+    resumed_locales = resumed_locales or []
     run(
         manager_command(
             locale_manager,
@@ -158,6 +252,16 @@ def run_manifest(
                 str(output),
                 "--platform",
                 platform,
+                "--version",
+                FIREFOX_VERSION,
+                "--artifact-tag",
+                artifact_tag,
+                "--artifact-kind",
+                artifact_kind,
+                "--locales",
+                *locales,
+                "--resumed-locales",
+                *resumed_locales,
                 "--overall",
                 overall,
             ],
@@ -233,18 +337,125 @@ def validate_firefox_checkout(
     return firefox_directory
 
 
-def default_destination(platform: str) -> Path:
+def default_destination(platform: str, langpacks_only: bool = False) -> Path:
     base = Path(tempfile.gettempdir()) if os.name == "nt" else Path("/tmp")
-    return base / f"mercury-localized-{platform}"
+    family = "langpacks" if langpacks_only else "localized"
+    return base / f"mercury-{family}-{platform}"
 
 
-def resolve_destination(value: Optional[str], platform: str) -> Path:
+def resolve_destination(
+    value: Optional[str], platform: str, langpacks_only: bool = False
+) -> Path:
     if not value:
-        return default_destination(platform)
+        return default_destination(platform, langpacks_only)
     destination = native_path(value)
     if not destination.is_absolute():
         destination = Path.cwd() / destination
     return destination
+
+
+def resolve_base_package(value: Optional[str]) -> Path:
+    package_value = value or os.environ.get("MERCURY_PACKAGE")
+    if not package_value:
+        raise ValueError(
+            "A local en-US Mercury package is required. Pass --package FILE "
+            "or set MERCURY_PACKAGE."
+        )
+    package = native_path(package_value)
+    if not package.is_absolute():
+        package = Path.cwd() / package
+    package = package.resolve()
+    if not package.is_file() or package.stat().st_size == 0:
+        raise ValueError(f"Mercury base package is missing or empty: {package}")
+    return package
+
+
+def read_locale_file(value: str) -> List[str]:
+    path = native_path(value)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if not path.is_file():
+        raise ValueError(f"Locale list is missing: {path}")
+    locales = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        locale = line.split("#", 1)[0].strip()
+        if locale:
+            locales.append(locale)
+    if not locales:
+        raise ValueError(f"Locale list is empty: {path}")
+    return locales
+
+
+def select_locales(options: Options, supported: List[str]) -> List[str]:
+    if options.all_locales:
+        return supported
+    requested = (
+        list(options.locales)
+        if options.locales
+        else read_locale_file(options.locales_file or "")
+    )
+    if len(requested) != len(set(requested)):
+        raise ValueError("The requested locale list contains duplicates.")
+    unknown = sorted(set(requested) - set(supported))
+    if unknown:
+        raise ValueError(
+            f"Locales are not supported on {options.platform}: "
+            + ", ".join(unknown)
+        )
+    requested_set = set(requested)
+    return [locale for locale in supported if locale in requested_set]
+
+
+def configured_artifact_tag(
+    mercury_directory: Path, firefox_directory: Path, platform: str
+) -> str:
+    active = firefox_directory / "mozconfig"
+    matches = []
+    for filename, (profile_platform, artifact_tag) in PROFILE_ARTIFACT_TAGS.items():
+        candidate = mercury_directory / "mozconfigs" / filename
+        if profile_platform == platform and files_equal(active, candidate):
+            matches.append(artifact_tag)
+    matches = sorted(set(matches))
+    if len(matches) != 1:
+        raise ValueError(
+            "The active Firefox mozconfig does not uniquely match a Mercury "
+            f"{platform} release profile. Run setup.py with the intended profile."
+        )
+    return matches[0]
+
+
+def artifact_manager_output(
+    locale_manager: Path,
+    command: str,
+    changesets: Path,
+    destination: Path,
+    platform: str,
+    artifact_tag: str,
+    locales: List[str],
+    artifact_kind: str,
+) -> str:
+    return process_output(
+        manager_command(
+            locale_manager,
+            [
+                command,
+                "--changesets",
+                str(changesets),
+                "--destination",
+                str(destination),
+                "--platform",
+                platform,
+                "--version",
+                FIREFOX_VERSION,
+                "--artifact-tag",
+                artifact_tag,
+                "--artifact-kind",
+                artifact_kind,
+                "--locales",
+                *locales,
+            ],
+        )
+    )
 
 
 def print_dry_run_manifest(
@@ -255,6 +466,9 @@ def print_dry_run_manifest(
     reference_root: Path,
     destination: Path,
     platform: str,
+    locales: List[str],
+    artifact_tag: str,
+    artifact_kind: str,
 ) -> None:
     descriptor, temporary_name = tempfile.mkstemp(
         prefix="mercury-localization-manifest.", suffix=".tsv"
@@ -272,15 +486,18 @@ def print_dry_run_manifest(
             output,
             platform,
             "planned",
+            locales,
+            artifact_tag,
+            artifact_kind,
         )
         print(output.read_text(encoding="utf-8"), end="")
     finally:
         output.unlink(missing_ok=True)
 
 
-def configured_target_platform(
+def configured_build_environment(
     locale_manager: Path, firefox_directory: Path
-) -> str:
+) -> tuple[str, Path]:
     temporary_directory = os.environ.get("TMPDIR") or tempfile.gettempdir()
     descriptor, environment_name = tempfile.mkstemp(
         prefix="mercury-build-environment.",
@@ -308,14 +525,55 @@ def configured_target_platform(
             raise ValueError(
                 "Unable to read the configured Firefox target platform."
             ) from error
-        return process_output(
+        data = json.loads(environment.read_text(encoding="utf-8"))
+        topobjdir = data.get("topobjdir") if isinstance(data, dict) else None
+        if not isinstance(topobjdir, str) or not topobjdir:
+            raise ValueError(
+                "Firefox build environment does not declare topobjdir."
+            )
+        platform = process_output(
             manager_command(
                 locale_manager,
                 ["target-platform", "--environment", str(environment)],
             )
         )
+        return platform, native_path(topobjdir).resolve()
     finally:
         environment.unlink(missing_ok=True)
+
+
+def build_language_packs(
+    firefox_directory: Path,
+    topobjdir: Path,
+    destination: Path,
+    locales: List[str],
+    verbose: bool,
+) -> None:
+    source = topobjdir / "dist/target.langpack.xpi"
+    os.environ["MOZ_SIMPLE_PACKAGE_NAME"] = "target"
+    for index, locale in enumerate(locales, 1):
+        print(
+            f"[langpack {index}/{len(locales)}] {locale}",
+            flush=True,
+        )
+        source.unlink(missing_ok=True)
+        command = mach_command(["build"])
+        if verbose:
+            command.append("-v")
+        command.append(f"langpack-{locale}")
+        run(command, cwd=firefox_directory)
+        if not source.is_file() or source.stat().st_size == 0:
+            raise ValueError(
+                f"Firefox did not produce the expected language pack: {source}"
+            )
+        locale_directory = destination / locale
+        locale_directory.mkdir(parents=True, exist_ok=True)
+        published = (
+            locale_directory
+            / f"mercury-{FIREFOX_VERSION}.{locale}.langpack.xpi"
+        )
+        published.unlink(missing_ok=True)
+        shutil.copy2(source, locale_directory / "target.langpack.xpi")
 
 
 def finalize_repackage(
@@ -329,21 +587,49 @@ def finalize_repackage(
     manifest: Path,
     platform: str,
     firefox_directory: Path,
+    locales: List[str],
+    artifact_tag: str,
+    artifact_kind: str,
+    resumed_locales: List[str],
+    locales_to_finalize: List[str],
+    restore_configuration: bool,
 ) -> int:
-    print("\nRestoring the object directory to en-US...")
-    try:
-        run(
-            mach_command(["configure", "--enable-ui-locale=en-US"]),
-            cwd=firefox_directory,
-        )
-    except (OSError, subprocess.CalledProcessError):
+    if restore_configuration:
+        print("\nRestoring the object directory to en-US...")
+        try:
+            run(
+                mach_command(["configure", "--enable-ui-locale=en-US"]),
+                cwd=firefox_directory,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            print(
+                "Failed to restore the Firefox object directory to en-US.",
+                file=sys.stderr,
+            )
+            status = 1
+
+    if locales_to_finalize:
         print(
-            "Failed to restore the Firefox object directory to en-US.",
-            file=sys.stderr,
+            f"Finalizing {len(locales_to_finalize)} newly generated locales...",
+            flush=True,
         )
-        status = 1
+        try:
+            artifact_manager_output(
+                locale_manager,
+                "finalize",
+                changesets,
+                destination,
+                platform,
+                artifact_tag,
+                locales_to_finalize,
+                artifact_kind,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            print("Failed to finalize localized artifacts.", file=sys.stderr)
+            status = 1
 
     overall = "success" if status == 0 else "failed"
+    print("Writing the localization manifest...", flush=True)
     try:
         run_manifest(
             locale_manager,
@@ -355,6 +641,10 @@ def finalize_repackage(
             manifest,
             platform,
             overall,
+            locales,
+            artifact_tag,
+            artifact_kind,
+            resumed_locales,
         )
     except (OSError, subprocess.CalledProcessError):
         status = 1
@@ -364,13 +654,11 @@ def finalize_repackage(
 
 
 def repackage(
-    platform: str,
-    destination_value: Optional[str],
-    dry_run: bool,
-    verbose: bool,
+    options: Options,
 ) -> int:
     mercury_directory = Path(__file__).resolve().parent
     locale_manager = mercury_directory / "l10n/locale_manager.py"
+    artifact_manager = mercury_directory / "l10n/artifact_manager.py"
     translations = mercury_directory / "l10n/translations.json"
     firefox_value = os.environ.get("MOZ_SRC_DIR") or default_source_directory(
         target_platform([])
@@ -394,91 +682,165 @@ def repackage(
     locales_output = optional_process_output(
         manager_command(
             locale_manager,
-            ["list", "--changesets", str(changesets), "--platform", platform],
+            [
+                "list",
+                "--changesets",
+                str(changesets),
+                "--platform",
+                options.platform,
+            ],
         )
     )
-    locales = locales_output.splitlines() if locales_output else []
-    if not locales:
-        raise ValueError(f"Firefox returned no locales for {platform}.")
+    supported_locales = locales_output.splitlines() if locales_output else []
+    if not supported_locales:
+        raise ValueError(f"Firefox returned no locales for {options.platform}.")
+    locales = select_locales(options, supported_locales)
+    artifact_tag = configured_artifact_tag(
+        mercury_directory, firefox_directory, options.platform
+    )
+    artifact_kind = "langpack" if options.langpacks_only else "full"
 
-    destination = resolve_destination(destination_value, platform)
+    destination = resolve_destination(
+        options.destination, options.platform, options.langpacks_only
+    )
     reference_root = firefox_directory / "browser/locales/en-US"
-    if dry_run:
+    if options.dry_run:
         print_dry_run_manifest(
-            locale_manager,
+            artifact_manager,
             changesets,
             workspace,
             translations,
             reference_root,
             destination,
-            platform,
+            options.platform,
+            locales,
+            artifact_tag,
+            artifact_kind,
         )
         return 0
 
-    configured_platform = configured_target_platform(
+    configured_platform, topobjdir = configured_build_environment(
         locale_manager, firefox_directory
     )
-    if configured_platform != platform:
+    if configured_platform != options.platform:
         raise ValueError(
-            f"Configured Firefox target is {configured_platform}, not {platform}."
+            f"Configured Firefox target is {configured_platform}, "
+            f"not {options.platform}."
         )
 
     if destination.exists() and not destination.is_dir():
         raise ValueError(f"Artifact destination is not a directory: {destination}")
-    if destination.is_dir() and next(destination.iterdir(), None) is not None:
+    if (
+        not options.resume
+        and destination.is_dir()
+        and next(destination.iterdir(), None) is not None
+    ):
         raise ValueError(f"Artifact destination must be empty: {destination}")
     destination.mkdir(parents=True, exist_ok=True)
     manifest = destination / "localization-manifest.tsv"
 
+    resumed_locales = []
+    if options.resume:
+        print(
+            f"Validating {len(locales)} existing locale directories...",
+            flush=True,
+        )
+        completed_output = artifact_manager_output(
+            artifact_manager,
+            "finalize",
+            changesets,
+            destination,
+            options.platform,
+            artifact_tag,
+            locales,
+            artifact_kind,
+        )
+        completed = set(completed_output.splitlines()) if completed_output else set()
+        resumed_locales = [locale for locale in locales if locale in completed]
+    pending_locales = [locale for locale in locales if locale not in resumed_locales]
+    base_package = (
+        resolve_base_package(options.package)
+        if pending_locales and not options.langpacks_only
+        else None
+    )
+
     run_manifest(
-        locale_manager,
+        artifact_manager,
         changesets,
         workspace,
         translations,
         reference_root,
         destination,
         manifest,
-        platform,
+        options.platform,
         "planned",
+        locales,
+        artifact_tag,
+        artifact_kind,
+        resumed_locales,
     )
     os.environ["MERCURY_L10N_REPACK"] = "1"
+    if base_package is not None:
+        os.environ["MOZ_ARTIFACT_FILE"] = str(base_package)
 
-    command = mach_command(
-        ["repackage-single-locales", "--locales", *locales, "--dest", str(destination)]
-    )
-    if verbose:
-        command.append("--verbose")
-
-    print(
-        f"Repackaging {len(locales)} Firefox-supported locales for {platform}..."
-    )
+    print(f"Selected locales: {len(locales)}")
+    if resumed_locales:
+        print(f"Already complete: {len(resumed_locales)}")
+    print(f"Locales to repackage: {len(pending_locales)}")
     status = 0
-    try:
-        run(command, cwd=firefox_directory)
-    except subprocess.CalledProcessError as error:
-        status = error.returncode or 1
-    except OSError as error:
-        print(error, file=sys.stderr)
-        status = 1
-    except KeyboardInterrupt:
-        status = 130
+    if pending_locales:
+        try:
+            if options.langpacks_only:
+                build_language_packs(
+                    firefox_directory,
+                    topobjdir,
+                    destination,
+                    pending_locales,
+                    options.verbose,
+                )
+            else:
+                command = mach_command(
+                    [
+                        "repackage-single-locales",
+                        "--locales",
+                        *pending_locales,
+                        "--dest",
+                        str(destination),
+                    ]
+                )
+                if options.verbose:
+                    command.append("--verbose")
+                run(command, cwd=firefox_directory)
+        except subprocess.CalledProcessError as error:
+            status = error.returncode or 1
+        except OSError as error:
+            print(error, file=sys.stderr)
+            status = 1
+        except KeyboardInterrupt:
+            status = 130
     return finalize_repackage(
         status,
-        locale_manager,
+        artifact_manager,
         changesets,
         workspace,
         translations,
         reference_root,
         destination,
         manifest,
-        platform,
+        options.platform,
         firefox_directory,
+        locales,
+        artifact_tag,
+        artifact_kind,
+        resumed_locales,
+        pending_locales,
+        not options.langpacks_only,
     )
 
 
 def main() -> int:
     try:
-        platform, destination, dry_run, verbose = parse_arguments(sys.argv[1:])
+        options = parse_arguments(sys.argv[1:])
     except HelpRequested:
         print(HELP, end="")
         return 0
@@ -489,7 +851,7 @@ def main() -> int:
         return 2
 
     try:
-        return repackage(platform, destination, dry_run, verbose)
+        return repackage(options)
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1

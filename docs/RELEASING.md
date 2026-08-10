@@ -190,18 +190,42 @@ packaged:
 ```bash
 export MOZ_SRC_DIR=/path/to/firefox-linux-avx
 export L10NBASEDIR=/tmp/mercury-l10n
+export MERCURY_PACKAGE="$MOZ_SRC_DIR/obj-x86_64-pc-linux-gnu/dist/mercury-<version>.en-US.linux-x86_64.tar.xz"
 ./repackage_locales.py --platform linux \
+  --all-locales \
+  --package "$MERCURY_PACKAGE" \
   --dest /path/to/release/localized/linux-avx
 ```
 
 Use `windows` or `macos` for those targets. The platform describes the target
 binaries, not the build host. Run the wrapper separately for every CPU variant
-whose localized application packages will be published.
+whose localized application packages will be published. The local `en-US`
+package is mandatory: Firefox's repackager uses it as the binary base instead
+of fetching an upstream Mozilla CI artifact.
 
-The wrapper selects the pinned Firefox platform locale set, verifies Mercury's
-translation and patch inputs, restores the object directory to `en-US`, and
-writes `localization-manifest.tsv`. It requires the following per-locale
-outputs:
+Use `--locales ...` or `--locales-file FILE` instead of `--all-locales` for a
+smaller release set. Add `--resume` after interruption to validate and skip
+complete locales already in the destination.
+
+For an English-base-plus-language-packs release, omit localized application
+archives and run one language-pack-only batch per platform family:
+
+```bash
+./repackage_locales.py --platform linux \
+  --all-locales \
+  --langpacks-only \
+  --dest /path/to/release/langpacks/linux
+```
+
+Repeat from configured Windows and macOS object directories. These targets
+package localized resources but do not rebuild browser native code. A pack is
+shared by every CPU profile on its platform. Compare XPI SHA-256 values before
+deduplicating across platforms; macOS also uses `ja-JP-mac` instead of `ja`.
+
+The wrapper verifies Mercury's translation and patch inputs, restores the
+object directory to `en-US`, assigns stable version/locale/target names, and
+writes `SHA256SUMS` plus `localization-manifest.tsv`. It requires the following
+Firefox-native inputs before renaming:
 
 | Target | Verified localized outputs |
 | --- | --- |
@@ -230,13 +254,16 @@ Portable packages wrap native package outputs without recompiling Mercury:
 
 ```bash
 ./make_portable.py /path/to/mercury-linux.tar.xz \
-  -o /path/to/release/mercury-linux.portable.tar.xz
+  -o /path/to/release/mercury_VERSION_linux_VARIANT.zip
 ./make_portable.py /path/to/mercury-windows.zip \
   -o /path/to/release/mercury-windows.portable.zip
 ```
 
 Portable packaging is supported only for Linux application TARs and Windows
-application ZIPs. It is not used for DMG, installer, or Debian artifacts.
+application ZIPs. The Linux producer creates the historical Mercury ZIP layout:
+one directory named after the output archive containing `MERCURY_PORTABLE` and
+`mercury/`. It preserves executable modes and symbolic links from the native
+TAR. It is not used for DMG, installer, or Debian artifacts.
 
 ## Mapping the v129.0.2 release
 
@@ -247,16 +274,17 @@ workflow as follows:
 
 | v129.0.2 artifact group | Count | Current producer |
 | --- | ---: | --- |
-| Linux ARM64/SSE3/SSE4/AVX/AVX2 ZIP | 5 | Replaced by `package.py` native `.tar.xz` outputs |
+| Linux ARM64/SSE3/SSE4/AVX/AVX2 ZIP | 5 | `make_portable.py` from each native TAR |
 | Linux ARM64/SSE3/SSE4/AVX/AVX2 DEB | 5 | `make_deb.py` from each matching native archive |
 | Windows SSE3/SSE4/AVX/AVX2 ZIP | 4 | Native Windows `package.py` |
 | Windows SSE3/SSE4/AVX/AVX2 installer | 4 | Native Windows `package.py` |
 | macOS x64/ARM64 DMG | 2 | Native or fully configured cross macOS `package.py` |
 | Source ZIP/TAR.GZ | 2 | GitHub automatically generates them from the release tag |
 
-Do not reproduce the old Linux ZIP merely to preserve its filename. Firefox's
-current native Linux TAR.XZ output preserves Unix permissions and is the
-supported input for Mercury's Debian, portable, and localization workflows.
+Firefox's current native Linux TAR.XZ remains the canonical input for Mercury's
+Debian, portable, and localization workflows. Publish the native TAR.XZ when
+useful, and use `make_portable.py` to reproduce the established Linux ZIP asset
+family without recompiling the browser.
 
 ## Release validation
 

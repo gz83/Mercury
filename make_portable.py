@@ -6,6 +6,8 @@
 
 import copy
 import os
+import posixpath
+import shutil
 import sys
 import tarfile
 import time
@@ -27,6 +29,8 @@ Supported inputs:
 
 The input must contain one top-level `mercury/` directory. The portable
 launcher and its USER_DATA profile directory live beside that directory.
+Linux output is a ZIP with a single directory named after the output file,
+matching Mercury's historical release layout.
 
 Options:
   -o, --output FILE  Write the portable package to FILE
@@ -86,7 +90,7 @@ def archive_options(archive: Path) -> Tuple[str, str, str]:
     name = archive.name
     for suffix in LINUX_SUFFIXES:
         if name.endswith(suffix):
-            return "linux", name[: -len(suffix)], ".portable.tar.xz"
+            return "linux", name[: -len(suffix)], ".portable.zip"
     if name.endswith(".zip"):
         return "windows", name[:-4], ".portable.zip"
     raise ValueError(f"Unsupported archive format: {archive}")
@@ -123,27 +127,68 @@ def validate_member(name: str) -> str:
     return name
 
 
-def copy_tar_member(
-    source: tarfile.TarFile,
-    destination: tarfile.TarFile,
-    member: tarfile.TarInfo,
-    normalized_name: str,
-) -> None:
-    copied = copy.copy(member)
-    copied.name = normalized_name
-    copied.pax_headers = dict(copied.pax_headers)
-    copied.pax_headers.pop("path", None)
-    stream = source.extractfile(member) if member.isfile() else None
-    destination.addfile(copied, stream)
-
-
-def add_tar_launcher(destination: tarfile.TarFile, launcher: Path) -> None:
-    member = destination.gettarinfo(
-        str(launcher), arcname="MERCURY_PORTABLE.sh"
+def validate_link(member: tarfile.TarInfo, normalized_name: str) -> None:
+    if member.islnk():
+        validate_member(member.linkname)
+        return
+    if not member.issym():
+        return
+    target = member.linkname
+    if not target or target.startswith("/") or "\\" in target:
+        raise ValueError(f"Unsafe symbolic link: {member.name} -> {target}")
+    resolved = posixpath.normpath(
+        posixpath.join(posixpath.dirname(normalized_name), target)
     )
-    member.mtime = int(time.time())
-    with launcher.open("rb") as stream:
-        destination.addfile(member, stream)
+    if resolved != "mercury" and not resolved.startswith("mercury/"):
+        raise ValueError(f"Unsafe symbolic link: {member.name} -> {target}")
+
+
+def zip_timestamp(timestamp: float) -> Tuple[int, int, int, int, int, int]:
+    value = time.localtime(timestamp)[:6]
+    if value[0] < 1980:
+        return (1980, 1, 1, 0, 0, 0)
+    if value[0] > 2107:
+        return (2107, 12, 31, 23, 59, 58)
+    return value
+
+
+def linux_zip_info(
+    name: str, mode: int, timestamp: float, *, directory: bool = False
+) -> zipfile.ZipInfo:
+    if directory and not name.endswith("/"):
+        name += "/"
+    member = zipfile.ZipInfo(name, zip_timestamp(timestamp))
+    member.create_system = 3
+    file_type = 0o040000 if directory else mode & 0o170000
+    if not file_type:
+        file_type = 0o100000
+    member.external_attr = ((file_type | (mode & 0o7777)) << 16) | (
+        0x10 if directory else 0
+    )
+    member.compress_type = (
+        zipfile.ZIP_STORED if directory else zipfile.ZIP_DEFLATED
+    )
+    return member
+
+
+def copy_tar_file_to_zip(
+    source: tarfile.TarFile,
+    destination: zipfile.ZipFile,
+    member: tarfile.TarInfo,
+    target_name: str,
+) -> None:
+    if member.issym():
+        info = linux_zip_info(target_name, 0o120000 | member.mode, member.mtime)
+        destination.writestr(info, member.linkname.encode("utf-8"))
+        return
+
+    stream = source.extractfile(member)
+    if stream is None:
+        raise ValueError(f"Unable to read archive member: {member.name}")
+    info = linux_zip_info(target_name, 0o100000 | member.mode, member.mtime)
+    info.file_size = member.size
+    with stream, destination.open(info, mode="w", force_zip64=True) as output:
+        shutil.copyfileobj(stream, output, length=1024 * 1024)
 
 
 def create_linux_portable(archive: Path, output: Path, launcher: Path) -> None:
@@ -157,6 +202,8 @@ def create_linux_portable(archive: Path, output: Path, launcher: Path) -> None:
             if not members:
                 raise ValueError(f"Archive is empty: {archive}")
             normalized = [validate_member(member.name) for member in members]
+            for member, name in zip(members, normalized):
+                validate_link(member, name)
             executable = [
                 member
                 for member, name in zip(members, normalized)
@@ -171,18 +218,67 @@ def create_linux_portable(archive: Path, output: Path, launcher: Path) -> None:
                     "Linux Mercury executable is missing from the package."
                 )
 
+            unsupported = [
+                member.name
+                for member in members
+                if not (
+                    member.isfile()
+                    or member.isdir()
+                    or member.issym()
+                    or member.islnk()
+                )
+            ]
+            if unsupported:
+                raise ValueError(
+                    f"Unsupported Linux archive member: {unsupported[0]}"
+                )
+
             output.parent.mkdir(parents=True, exist_ok=True)
-            with tarfile.open(output, mode="w:xz") as destination:
-                add_tar_launcher(destination, launcher)
+            archive_root = output.name[:-4]
+            if archive_root in {"", ".", ".."}:
+                raise ValueError(f"Invalid Linux portable output name: {output.name}")
+            now = time.time()
+            with zipfile.ZipFile(
+                output,
+                mode="w",
+                compression=zipfile.ZIP_DEFLATED,
+                allowZip64=True,
+            ) as destination:
+                destination.writestr(
+                    linux_zip_info(archive_root, 0o40755, now, directory=True), b""
+                )
+                launcher_info = linux_zip_info(
+                    f"{archive_root}/MERCURY_PORTABLE",
+                    0o100000 | (launcher.stat().st_mode & 0o777),
+                    launcher.stat().st_mtime,
+                )
+                with launcher.open("rb") as stream, destination.open(
+                    launcher_info, mode="w", force_zip64=True
+                ) as launcher_output:
+                    shutil.copyfileobj(stream, launcher_output)
+
                 if "mercury" not in normalized and "mercury/" not in normalized:
-                    root = tarfile.TarInfo("mercury")
-                    root.type = tarfile.DIRTYPE
-                    root.mode = 0o755
-                    root.mtime = int(time.time())
-                    destination.addfile(root)
+                    destination.writestr(
+                        linux_zip_info(
+                            f"{archive_root}/mercury", 0o40755, now, directory=True
+                        ),
+                        b"",
+                    )
                 for member, name in zip(members, normalized):
-                    copy_tar_member(source, destination, member, name)
-    except (EOFError, OSError, tarfile.TarError) as error:
+                    target_name = f"{archive_root}/{name}"
+                    if member.isdir():
+                        destination.writestr(
+                            linux_zip_info(
+                                target_name, 0o040000 | member.mode, member.mtime,
+                                directory=True,
+                            ),
+                            b"",
+                        )
+                    else:
+                        copy_tar_file_to_zip(
+                            source, destination, member, target_name
+                        )
+    except (EOFError, OSError, tarfile.TarError, zipfile.BadZipFile) as error:
         raise ValueError(
             f"Invalid Linux package archive: {archive}: {error}"
         ) from error
@@ -282,6 +378,8 @@ def create_portable(archive_value: str, output_value: Optional[str]) -> None:
     archive = resolve_archive(archive_value)
     platform, stem, suffix = archive_options(archive)
     output = resolve_output(output_value, script_directory, stem, suffix)
+    if platform == "linux" and output.suffix.lower() != ".zip":
+        raise ValueError("Linux portable output must use the .zip extension.")
     if output == archive:
         raise ValueError("Output must not overwrite the input archive.")
     if output.exists():

@@ -136,7 +136,9 @@ package never changes its variant's compiled native code.
 Use the platform batch wrapper rather than maintaining a locale list by hand:
 
 ```bash
-./repackage_locales.py --platform linux
+./repackage_locales.py --platform linux \
+  --all-locales \
+  --package "$MERCURY_PACKAGE"
 ```
 
 Use `windows` or `macos` for the corresponding configured target. The
@@ -144,15 +146,44 @@ Use `windows` or `macos` for the corresponding configured target. The
 build host. For example, a Linux-to-Windows cross-build uses
 `--platform windows`.
 
+`--package` must identify the packaged `en-US` Mercury archive produced from
+the active object directory and CPU variant. `MERCURY_PACKAGE` is used when
+the option is omitted. The wrapper supplies this local archive through
+Firefox's native `MOZ_ARTIFACT_FILE` interface; it never downloads and
+repackages a Mozilla CI Firefox artifact.
+
 By default, output is written to `/tmp/mercury-localized-<platform>` on POSIX
 systems and the corresponding system temporary directory on Windows. Use
 `--dest DIRECTORY` to override it. For a real repackage, the destination may be
-absent or an existing empty directory; a non-empty destination is rejected.
+absent or an existing empty directory. A non-empty destination is accepted
+only with `--resume`.
+Language-pack-only mode instead defaults to
+`/tmp/mercury-langpacks-<platform>`.
+
+For a smaller release set, replace `--all-locales` with either an explicit
+list or a UTF-8 file containing one locale per line (`#` starts a comment):
+
+```bash
+./repackage_locales.py --platform linux \
+  --locales zh-CN zh-TW ja de fr \
+  --package "$MERCURY_PACKAGE" \
+  --dest "$LOCALIZED_DIR"
+
+./repackage_locales.py --platform linux \
+  --locales-file release-locales.txt \
+  --package "$MERCURY_PACKAGE" \
+  --dest "$LOCALIZED_DIR"
+```
+
+Exactly one of `--all-locales`, `--locales`, or `--locales-file` is required,
+including in dry-run mode. This prevents an accidental 102-locale run.
 
 For example, a native Windows repackage can be started from PowerShell with:
 
 ```powershell
 py -3 repackage_locales.py --platform windows `
+  --all-locales `
+  --package "$env:MERCURY_PACKAGE" `
   --dest "$env:TEMP\mercury-localized-windows"
 ```
 
@@ -162,32 +193,74 @@ The wrapper:
    overlay, active Mercury `mozconfig`, l10n marker revisions,
    and translation catalog, generator, reference-message, and prepared-resource
    SHA-256 digests;
-2. selects the 102 locales allowed for that platform;
-3. sets `MERCURY_L10N_REPACK=1` so PGO is not rerun and the base binaries are
+2. validates the explicitly selected locales against the platform set;
+3. requires a non-empty local `en-US` Mercury package and passes it to
+   Firefox's native artifact unpacker;
+4. sets `MERCURY_L10N_REPACK=1` so PGO is not rerun and the base binaries are
    not clobbered;
-4. invokes the selected Firefox release's `mach repackage-single-locales`;
-5. restores the object directory to `en-US`, including after failure;
-6. writes `localization-manifest.tsv` with each locale's review state, exact
-   machine target, catalog SHA-256, and produced/incomplete status. If Firefox
-   returns success without the complete artifact set, the manifest records
-   `overall=incomplete` and the wrapper fails.
+5. invokes the selected Firefox release's `mach repackage-single-locales`;
+6. restores the object directory to `en-US`, including after failure;
+7. validates and atomically renames every complete artifact with its Mercury
+   version, locale, platform, architecture, and CPU profile;
+8. writes `SHA256SUMS` and `localization-manifest.tsv` with final filenames,
+   hashes, review state, exact machine target, and
+   produced/resumed/incomplete status. If Firefox returns success without the
+   complete artifact set, the manifest records `overall=incomplete` and the
+   wrapper fails.
+
+Resume an interrupted run without rebuilding already valid locales:
+
+```bash
+./repackage_locales.py --platform linux \
+  --all-locales \
+  --resume \
+  --package "$MERCURY_PACKAGE" \
+  --dest "$LOCALIZED_DIR"
+```
+
+Resume checks the real archive and language-pack contents; it does not trust a
+previous manifest. Existing Firefox-native `target.*` files are accepted,
+validated, renamed, and skipped, so an output directory created by an older
+Mercury wrapper can be upgraded without repackaging complete locales.
+If every selected locale is already complete, `--package` and
+`MERCURY_PACKAGE` are unnecessary because Firefox is not invoked.
+
+To publish language packs without localized application archives, use a
+separate destination and add `--langpacks-only`:
+
+```bash
+./repackage_locales.py --platform linux \
+  --all-locales \
+  --langpacks-only \
+  --dest /path/to/release/langpacks/linux
+```
+
+This mode invokes Firefox's native `langpack-<locale>` target, collects only
+the XPI, and does not require `--package` or `MERCURY_PACKAGE`. It retains the
+same locale validation, resumability, Mercury extension-ID checks, stable
+filenames, manifest, and SHA-256 inventory. It does not run the localized
+application `repackage-zip` target. Generate one set from a configured Linux,
+Windows, and macOS object directory; XPI files are independent of the CPU
+instruction-set profile, but platform locale sets and conditional resources
+can differ. Compare hashes before deduplicating packs across platforms.
 
 Inspect the exact locale set without building:
 
 ```bash
-./repackage_locales.py --platform linux --dry-run
-./repackage_locales.py --platform windows --dry-run
-./repackage_locales.py --platform macos --dry-run
+./repackage_locales.py --platform linux --all-locales --dry-run
+./repackage_locales.py --platform windows --all-locales --dry-run
+./repackage_locales.py --platform macos --all-locales --dry-run
 ```
 
 Dry-run mode still validates the pinned Firefox checkout, applied localization
 patches, branding overlay, active mozconfig, translation catalog, and prepared
 `L10NBASEDIR`. It does not create platform packages.
 
-The resulting per-locale directories must contain `target.langpack.xpi` and
-the platform artifacts produced by Firefox's upload workflow: Linux requires
-`target.tar.xz`, Windows requires both `target.zip` and
-`target.installer.exe`, and macOS requires either `target.tar` or `target.dmg`.
+Firefox initially writes `target.*` files. After validation, the wrapper gives
+them stable publication names. A Linux AVX2 `zh-CN` directory, for example,
+contains `mercury-153.0.3.zh-CN.linux-x86_64-avx2.tar.xz` and
+`mercury-153.0.3.zh-CN.langpack.xpi`. Windows includes separately named ZIP
+and installer files; macOS contains a named TAR or DMG.
 The wrapper verifies the XPI ZIP structure, CRCs, Mercury extension ID,
 Mercury-branded manifest name and description, `langpack_id`, exact `languages`
 entry, browser resource mapping, and packaged browser resources. It also opens

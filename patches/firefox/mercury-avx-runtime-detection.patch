@@ -1,0 +1,23 @@
+diff --git a/mozglue/misc/SSE.cpp b/mozglue/misc/SSE.cpp
+--- a/mozglue/misc/SSE.cpp
++++ b/mozglue/misc/SSE.cpp
+@@ -206,6 +206,7 @@ MOZ_RUNINIT bool fma3_enabled = has_cpuid_bits(1u, ecx, (1u << 12));
+ #  endif
+ 
+-#  if !defined(MOZILLA_PRESUME_AVX) || !defined(MOZILLA_PRESUME_AVX2)
++#  if !defined(MOZILLA_PRESUME_AVX) || !defined(MOZILLA_PRESUME_AVX2) || \
++      !defined(MOZILLA_PRESUME_BMI) || !defined(MOZILLA_PRESUME_BMI2)
+ static bool has_avx() {
+ #    if defined(MOZILLA_PRESUME_AVX)
+   return true;
+@@ -221,9 +222,9 @@ static bool has_avx() {
+   return has_cpuid_bits(1u, ecx, AVX | OSXSAVE | XSAVE) &&
+          // ensure the OS supports XSAVE of YMM registers
+          (xgetbv(0) & AVX_STATE) == AVX_STATE;
+ #    endif  // MOZILLA_PRESUME_AVX
+ }
+-#  endif  // !MOZILLA_PRESUME_AVX || !MOZILLA_PRESUME_AVX2
++#  endif  // AVX, AVX2, BMI, or BMI2 needs runtime detection
+ 
+ #  if !defined(MOZILLA_PRESUME_AVX)
+ MOZ_RUNINIT bool avx_enabled = has_avx();

@@ -1,0 +1,30 @@
+diff --git a/build/variables.py b/build/variables.py
+--- a/build/variables.py
++++ b/build/variables.py
+@@ -37,6 +37,16 @@ def get_program_output(*command):
+             )
+     except Exception:
+         return ""
++
++
++def get_git_info(workdir):
++    repo = get_program_output("git", "-C", workdir, "remote", "get-url", "origin").strip()
++    if repo.startswith("git@github.com:"):
++        repo = "https://github.com/" + repo.removeprefix("git@github.com:")
++    repo = repo.removesuffix(".git").rstrip("/")
++
++    changeset = get_program_output("git", "-C", workdir, "rev-parse", "HEAD").strip()
++    return repo, changeset
+ 
+ 
+ def get_hg_info(workdir):
+@@ -93,7 +103,9 @@ def source_repo_header(output):
+     if not repo:
+         sourcestamp_path = os.path.join(buildconfig.topsrcdir, SOURCESTAMP_FILENAME)
+         if os.path.exists(os.path.join(buildconfig.topsrcdir, ".hg")):
+             repo, changeset = get_hg_info(buildconfig.topsrcdir)
++        elif os.path.exists(os.path.join(buildconfig.topsrcdir, ".git")):
++            repo, changeset = get_git_info(buildconfig.topsrcdir)
+         elif os.path.exists(sourcestamp_path):
+             repo, changeset = get_info_from_sourcestamp(sourcestamp_path)
+     elif not changeset:

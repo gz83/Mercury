@@ -9,6 +9,16 @@ diff --git a/toolkit/moz.configure b/toolkit/moz.configure
  
  
  set_config("MOZ_LANGPACK_EID_HOST", moz_langpack_eid_host)
+diff --git a/toolkit/modules/moz.build b/toolkit/modules/moz.build
+--- a/toolkit/modules/moz.build
++++ b/toolkit/modules/moz.build
+@@ -280,5 +280,6 @@
+ for var in (
+     "MOZ_APP_NAME",
++    "MOZ_LANGPACK_EID_HOST",
+     "MOZ_APP_BASENAME",
+     "MOZ_APP_DISPLAYNAME",
+     "MOZ_APP_VERSION",
 diff --git a/toolkit/modules/AppConstants.sys.mjs b/toolkit/modules/AppConstants.sys.mjs
 --- a/toolkit/modules/AppConstants.sys.mjs
 +++ b/toolkit/modules/AppConstants.sys.mjs
