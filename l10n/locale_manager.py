@@ -35,9 +35,9 @@ PRODUCT_ALIASES = {
 }
 
 PLATFORM_PREFIXES = {
-    "linux": ("linux",),
-    "macos": ("macos",),
-    "windows": ("win",),
+    "linux": "linux",
+    "macos": "macos",
+    "windows": "win",
 }
 
 FTL_MESSAGES = {
@@ -71,6 +71,30 @@ PROPERTIES_MESSAGES = {
     ),
 }
 
+SORTED_PRODUCT_ALIASES = {
+    locale: tuple(sorted(aliases, key=len, reverse=True))
+    for locale, aliases in PRODUCT_ALIASES.items()
+}
+
+MACHINE_REPLACEMENTS = (
+    ("ZXQ000ZXQ", "{ -brand-short-name }"),
+    (
+        "ZXQ001ZXQ",
+        '<label data-l10n-name="community-mozillaLink">Mozilla</label>',
+    ),
+    ("ZXQ003ZXQ", "Mercury"),
+    ("ZXQ004ZXQ", "%S"),
+    ("ZXQ005ZXQ", "SSLv3"),
+)
+
+BRANDED_MANIFEST_FIELDS = (
+    ("name", "Mercury Language: "),
+    ("description", "Mercury Language Pack for "),
+)
+
+FTL_KEYS = frozenset(key for keys in FTL_MESSAGES.values() for key in keys)
+PROPERTY_KEYS = frozenset(key for keys in PROPERTIES_MESSAGES.values() for key in keys)
+
 
 def load_changesets(path: Path) -> dict[str, dict]:
     with path.open(encoding="utf-8") as stream:
@@ -103,12 +127,12 @@ def load_changesets(path: Path) -> dict[str, dict]:
 def locales_for_platform(changesets: dict[str, dict], platform: str) -> list[str]:
     if platform == "all":
         return sorted(changesets)
-    prefixes = PLATFORM_PREFIXES[platform]
+    prefix = PLATFORM_PREFIXES[platform]
     return sorted(
         locale
         for locale, entry in changesets.items()
         if any(
-            platform_name.startswith(prefixes)
+            platform_name.startswith(prefix)
             for platform_name in entry.get("platforms", [])
         )
     )
@@ -149,6 +173,17 @@ def load_translations(path: Path) -> dict[str, dict]:
                 f"Reviewed translation target does not match its locale: {locale}"
             )
     return locales
+
+
+def translation_metadata(
+    translations: dict[str, dict], locales: list[str]
+) -> tuple[list[str], list[str], dict[str, str]]:
+    reviewed = sorted(
+        locale for locale in locales if translations[locale]["status"] == "reviewed"
+    )
+    drafts = sorted(set(locales) - set(reviewed))
+    targets = {locale: translations[locale]["target"] for locale in drafts}
+    return reviewed, drafts, targets
 
 
 def sha256_file(path: Path) -> str:
@@ -206,8 +241,9 @@ def find_property(lines: list[str], key: str) -> tuple[int, int] | None:
     return start, end
 
 
-def extract_message(path: Path, key: str, finder) -> list[str]:
-    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+def extract_message(
+    lines: list[str], path: Path, key: str, finder
+) -> list[str]:
     span = finder(lines, key)
     if span is None:
         raise ValueError(f"Reference message {key} is missing from {path}")
@@ -218,8 +254,9 @@ def extract_message(path: Path, key: str, finder) -> list[str]:
     return message
 
 
-def replace_message(path: Path, key: str, replacement: list[str], finder) -> None:
-    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+def replace_message(
+    lines: list[str], key: str, replacement: list[str], finder
+) -> None:
     span = finder(lines, key)
     if span is None:
         if lines and not lines[-1].endswith(("\n", "\r")):
@@ -228,30 +265,20 @@ def replace_message(path: Path, key: str, replacement: list[str], finder) -> Non
     else:
         start, end = span
         lines[start:end] = replacement
-    path.write_text("".join(lines), encoding="utf-8")
 
 
 def replace_product_name(locale: str, message: list[str]) -> list[str]:
     rendered = []
     for line in message:
         line = re.sub("firefox", "Mercury", line, flags=re.IGNORECASE)
-        for alias in sorted(PRODUCT_ALIASES.get(locale, ()), key=len, reverse=True):
+        for alias in SORTED_PRODUCT_ALIASES.get(locale, ()):
             line = line.replace(alias, "Mercury")
         rendered.append(line)
     return rendered
 
 
 def render_machine_message(value: str) -> str:
-    replacements = {
-        "ZXQ000ZXQ": "{ -brand-short-name }",
-        "ZXQ001ZXQ": (
-            '<label data-l10n-name="community-mozillaLink">Mozilla</label>'
-        ),
-        "ZXQ003ZXQ": "Mercury",
-        "ZXQ004ZXQ": "%S",
-        "ZXQ005ZXQ": "SSLv3",
-    }
-    for marker, replacement in replacements.items():
+    for marker, replacement in MACHINE_REPLACEMENTS:
         value = value.replace(marker, replacement)
     if "ZXQ" in value:
         raise ValueError("A machine-translation placeholder was not resolved")
@@ -324,9 +351,8 @@ def format_ftl_message(key: str, value: str) -> list[str]:
 
 
 def validate_message(
-    path: Path, key: str, finder, locale: str, reference: list[str]
+    lines: list[str], path: Path, key: str, finder, locale: str, reference: list[str]
 ) -> None:
-    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     span = finder(lines, key)
     if span is None:
         raise ValueError(f"Prepared message {key} is missing from {path}")
@@ -352,35 +378,29 @@ def validate_message(
 
 def reference_messages(reference_root: Path):
     messages = []
-    for (workspace_path, reference_path), keys in FTL_MESSAGES.items():
-        source = reference_root / reference_path
-        for key in keys:
-            messages.append(
-                (
-                    workspace_path,
-                    key,
-                    extract_message(source, key, find_ftl_message),
-                    find_ftl_message,
+    for resources, finder in (
+        (FTL_MESSAGES, find_ftl_message),
+        (PROPERTIES_MESSAGES, find_property),
+    ):
+        for (workspace_path, reference_path), keys in resources.items():
+            source = reference_root / reference_path
+            lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
+            for key in keys:
+                messages.append(
+                    (
+                        workspace_path,
+                        key,
+                        extract_message(lines, source, key, finder),
+                        finder,
+                    )
                 )
-            )
-    for (workspace_path, reference_path), keys in PROPERTIES_MESSAGES.items():
-        source = reference_root / reference_path
-        for key in keys:
-            messages.append(
-                (
-                    workspace_path,
-                    key,
-                    extract_message(source, key, find_property),
-                    find_property,
-                )
-            )
     return messages
 
 
-def reference_messages_sha256(reference_root: Path) -> str:
+def reference_messages_sha256(messages) -> str:
     return sha256_records(
         (f"{path}\0{key}", "".join(message))
-        for path, key, message, _finder in reference_messages(reference_root)
+        for path, key, message, _finder in messages
     )
 
 
@@ -394,14 +414,17 @@ def controlled_resources_sha256(workspace: Path, locales: list[str]) -> str:
             )
         }
     )
-    records = []
-    for locale in sorted(locales):
-        for relative_path in relative_paths:
-            path = workspace / locale / relative_path
-            if not path.is_file():
-                raise ValueError(f"Controlled localization resource is missing: {path}")
-            records.append((f"{locale}/{relative_path}", path.read_bytes()))
-    return sha256_records(records)
+    def records():
+        for locale in sorted(locales):
+            for relative_path in relative_paths:
+                path = workspace / locale / relative_path
+                if not path.is_file():
+                    raise ValueError(
+                        f"Controlled localization resource is missing: {path}"
+                    )
+                yield f"{locale}/{relative_path}", path.read_bytes()
+
+    return sha256_records(records())
 
 
 def validate_fluent_resources(
@@ -449,12 +472,9 @@ def command_apply_translations(args: argparse.Namespace) -> int:
     translations = load_translations(args.translations)
     if set(translations) != set(supported_locales):
         raise ValueError("Translation catalog does not exactly cover Firefox locales")
-    reviewed_locales = sorted(
-        locale
-        for locale, entry in translations.items()
-        if entry["status"] == "reviewed"
+    reviewed_locales, draft_locales, draft_targets = translation_metadata(
+        translations, supported_locales
     )
-    draft_locales = sorted(set(supported_locales) - set(reviewed_locales))
 
     missing_directories = [
         locale for locale in supported_locales if not (args.workspace / locale).is_dir()
@@ -469,26 +489,24 @@ def command_apply_translations(args: argparse.Namespace) -> int:
 
     for locale in supported_locales:
         entry = translations[locale]
-        catalog_messages = entry.get("messages")
-        if not isinstance(catalog_messages, dict):
-            raise ValueError(f"Translation catalog messages are invalid: {locale}")
+        catalog_messages = entry["messages"]
 
-        expected_keys = {"community-2", "desktop-action-open-temp-profile"}
+        property_lines = {}
+        expected_keys = set(FTL_KEYS)
         for (relative_path, _reference_path), keys in PROPERTIES_MESSAGES.items():
             target = args.workspace / locale / relative_path
             if not target.is_file():
                 raise ValueError(f"Localization resource is missing: {target}")
             lines = target.read_text(encoding="utf-8").splitlines(keepends=True)
+            property_lines[relative_path] = lines
             if entry["status"] == "reviewed":
                 expected_keys.update(keys)
             else:
                 expected_keys.update(
                     key for key in keys if find_property(lines, key) is None
                 )
-        allowed_keys = expected_keys | {
-            key for keys in PROPERTIES_MESSAGES.values() for key in keys
-        }
-        if not expected_keys <= set(catalog_messages) <= allowed_keys:
+        catalog_keys = set(catalog_messages)
+        if not expected_keys <= catalog_keys <= expected_keys | PROPERTY_KEYS:
             raise ValueError(
                 f"Translation catalog key set does not match locale {locale}"
             )
@@ -507,12 +525,13 @@ def command_apply_translations(args: argparse.Namespace) -> int:
                 else:
                     value = render_machine_message(value)
                 replace_message(
-                    target, key, format_ftl_message(key, value), find_ftl_message
+                    lines, key, format_ftl_message(key, value), find_ftl_message
                 )
+            target.write_text("".join(lines), encoding="utf-8")
 
         for (relative_path, _reference_path), keys in PROPERTIES_MESSAGES.items():
             target = args.workspace / locale / relative_path
-            lines = target.read_text(encoding="utf-8").splitlines(keepends=True)
+            lines = property_lines[relative_path]
             for key in keys:
                 span = find_property(lines, key)
                 if key in catalog_messages:
@@ -520,17 +539,25 @@ def command_apply_translations(args: argparse.Namespace) -> int:
                     replacement = [f"{key} = {value}\n"]
                 else:
                     replacement = replace_product_name(locale, lines[slice(*span)])
-                replace_message(target, key, replacement, find_property)
-                lines = target.read_text(encoding="utf-8").splitlines(keepends=True)
+                replace_message(lines, key, replacement, find_property)
+            target.write_text("".join(lines), encoding="utf-8")
 
     validate_fluent_resources(
         args.workspace, args.reference_root, supported_locales
     )
 
     for locale in supported_locales:
+        resource_lines = {}
         for relative_path, key, reference, finder in messages:
+            path = args.workspace / locale / relative_path
+            if relative_path not in resource_lines:
+                resource_lines[relative_path] = path.read_text(
+                    encoding="utf-8"
+                ).splitlines(keepends=True)
+            lines = resource_lines[relative_path]
             validate_message(
-                args.workspace / locale / relative_path,
+                lines,
+                path,
                 key,
                 finder,
                 locale,
@@ -543,16 +570,14 @@ def command_apply_translations(args: argparse.Namespace) -> int:
         "l10nRevision": EXPECTED_L10N_REVISION,
         "translationsSha256": sha256_file(args.translations),
         "generatorSha256": sha256_file(Path(__file__).resolve()),
-        "referenceMessagesSha256": reference_messages_sha256(args.reference_root),
+        "referenceMessagesSha256": reference_messages_sha256(messages),
         "controlledResourcesSha256": controlled_resources_sha256(
             args.workspace, supported_locales
         ),
         "supportedLocales": supported_locales,
         "reviewedLocales": reviewed_locales,
         "machineDraftLocales": draft_locales,
-        "machineDraftTargets": {
-            locale: translations[locale]["target"] for locale in draft_locales
-        },
+        "machineDraftTargets": draft_targets,
         "controlledMessages": [
             {"path": path, "key": key}
             for path, key, _replacement, _finder in messages
@@ -625,7 +650,8 @@ def load_marker(
         raise ValueError(
             f"Localization marker was prepared by a different generator: {marker_path}"
         )
-    expected_reference = reference_messages_sha256(reference_root)
+    messages = reference_messages(reference_root)
+    expected_reference = reference_messages_sha256(messages)
     if marker.get("referenceMessagesSha256") != expected_reference:
         raise ValueError(
             "Localization marker was prepared from different patched en-US "
@@ -634,16 +660,9 @@ def load_marker(
     translations_by_locale = load_translations(translations)
     if set(translations_by_locale) != set(expected_locales):
         raise ValueError("Translation catalog does not cover the Firefox locale set")
-    expected_reviewed = sorted(
-        locale
-        for locale, entry in translations_by_locale.items()
-        if entry["status"] == "reviewed"
+    expected_reviewed, expected_drafts, expected_draft_targets = (
+        translation_metadata(translations_by_locale, expected_locales)
     )
-    expected_drafts = sorted(set(expected_locales) - set(expected_reviewed))
-    expected_draft_targets = {
-        locale: translations_by_locale[locale]["target"]
-        for locale in expected_drafts
-    }
 
     supported = marker.get("supportedLocales")
     reviewed = marker.get("reviewedLocales")
@@ -690,7 +709,7 @@ def load_marker(
         )
     expected_controlled_messages = [
         {"path": path, "key": key}
-        for path, key, _replacement, _finder in reference_messages(reference_root)
+        for path, key, _replacement, _finder in messages
     ]
     if marker.get("controlledMessages") != expected_controlled_messages:
         raise ValueError(
@@ -773,11 +792,7 @@ def validate_language_pack(path: Path, locale: str) -> str | None:
         return f"language-pack language metadata is invalid for {locale!r}"
     if manifest.get("manifest_version") != 2:
         return "language-pack manifest_version is not 2"
-    branded_fields = {
-        "name": "Mercury Language: ",
-        "description": "Mercury Language Pack for ",
-    }
-    for field, prefix in branded_fields.items():
+    for field, prefix in BRANDED_MANIFEST_FIELDS:
         value = manifest.get(field)
         if not isinstance(value, str) or not value.strip():
             return f"language-pack {field} is invalid"
@@ -889,6 +904,12 @@ ARTIFACT_VALIDATORS = {
     "target.dmg": validate_dmg,
 }
 
+REQUIRED_PACKAGES = {
+    "linux": (("target.tar.xz",),),
+    "windows": (("target.zip",), ("target.installer.exe",)),
+    "macos": (("target.tar", "target.dmg"),),
+}
+
 
 def validate_locale_artifacts(
     locale_dir: Path, locale: str, platform: str
@@ -902,12 +923,7 @@ def validate_locale_artifacts(
         if problem is not None:
             problems.append(problem)
 
-    required_packages = {
-        "linux": (("target.tar.xz",),),
-        "windows": (("target.zip",), ("target.installer.exe",)),
-        "macos": (("target.tar", "target.dmg"),),
-    }[platform]
-    for alternatives in required_packages:
+    for alternatives in REQUIRED_PACKAGES[platform]:
         failures = []
         valid = False
         for name in alternatives:
