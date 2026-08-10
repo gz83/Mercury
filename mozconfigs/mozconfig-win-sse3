@@ -8,6 +8,7 @@ ac_add_options --disable-artifact-builds
 
 # Build for Windows
 ac_add_options --enable-bootstrap
+ac_add_options --with-redist
 export MOZ_INCLUDE_SOURCE_INFO=1
 
 # Optimization settings
