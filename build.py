@@ -6,7 +6,6 @@
 
 import subprocess
 import sys
-from typing import List
 
 from bootstrap import mach_command, run
 from firefox_build import configured_checkout
@@ -24,15 +23,6 @@ Environment variables:
 """
 
 
-class UsageError(Exception):
-    """Raised when the command line is not supported."""
-
-
-def parse_arguments(arguments: List[str]) -> None:
-    if arguments:
-        raise UsageError(f"Unknown option: {arguments[0]}")
-
-
 def build() -> None:
     source_directory = configured_checkout()
     print("Building Mercury...", flush=True)
@@ -43,23 +33,19 @@ def build() -> None:
 
 def main() -> int:
     arguments = sys.argv[1:]
-    if arguments and arguments[0] in {"-h", "--help"}:
+    if arguments in (["-h"], ["--help"]):
         print(HELP, end="")
         return 0
-
-    try:
-        parse_arguments(arguments)
-        build()
-    except UsageError as error:
-        print(error, file=sys.stderr)
+    if arguments:
+        print(f"Unknown option: {arguments[0]}", file=sys.stderr)
         print(HELP, end="", file=sys.stderr)
         return 2
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
+
+    try:
+        build()
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

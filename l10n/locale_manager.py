@@ -7,12 +7,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
-import tarfile
-import zipfile
-import zlib
+import tempfile
 from pathlib import Path
+from typing import Optional
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 if str(REPOSITORY_ROOT) not in sys.path:
@@ -25,7 +25,6 @@ EXPECTED_L10N_REVISION = L10N_COMMIT
 EXPECTED_FIREFOX_COMMIT = FIREFOX_COMMIT
 MARKER_NAME = ".mercury-l10n.json"
 MARKER_SCHEMA_VERSION = 6
-LANGPACK_EID_HOST = "mercury.alex313031.github.io"
 SAFE_LOCALE = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 
 PRODUCT_ALIASES = {
@@ -91,11 +90,6 @@ MACHINE_REPLACEMENTS = (
     ("ZXQ003ZXQ", "Mercury"),
     ("ZXQ004ZXQ", "%S"),
     ("ZXQ005ZXQ", "SSLv3"),
-)
-
-BRANDED_MANIFEST_FIELDS = (
-    ("name", "Mercury Language: "),
-    ("description", "Mercury Language Pack for "),
 )
 
 FTL_KEYS = frozenset(key for keys in FTL_MESSAGES.values() for key in keys)
@@ -213,7 +207,9 @@ def sha256_records(records) -> str:
     return digest.hexdigest()
 
 
-def find_ftl_message(lines: list[str], key: str) -> tuple[int, int] | None:
+def find_ftl_message(
+    lines: list[str], key: str
+) -> Optional[tuple[int, int]]:
     pattern = re.compile(rf"^{re.escape(key)}\s*=")
     matches = [index for index, line in enumerate(lines) if pattern.match(line)]
     if len(matches) > 1:
@@ -233,7 +229,7 @@ def property_continues(line: str) -> bool:
     return trailing_backslashes % 2 == 1
 
 
-def find_property(lines: list[str], key: str) -> tuple[int, int] | None:
+def find_property(lines: list[str], key: str) -> Optional[tuple[int, int]]:
     pattern = re.compile(rf"^\s*{re.escape(key)}\s*[:=]")
     matches = [index for index, line in enumerate(lines) if pattern.match(line)]
     if len(matches) > 1:
@@ -261,9 +257,8 @@ def extract_message(
 
 
 def replace_message(
-    lines: list[str], key: str, replacement: list[str], finder
+    lines: list[str], replacement: list[str], span: Optional[tuple[int, int]]
 ) -> None:
-    span = finder(lines, key)
     if span is None:
         if lines and not lines[-1].endswith(("\n", "\r")):
             lines[-1] += "\n"
@@ -420,6 +415,7 @@ def controlled_resources_sha256(workspace: Path, locales: list[str]) -> str:
             )
         }
     )
+
     def records():
         for locale in sorted(locales):
             for relative_path in relative_paths:
@@ -446,6 +442,8 @@ def validate_fluent_resources(
         from fluent.syntax import FluentParser, ast as fluent_ast
     except ImportError as error:
         raise ValueError("Unable to load Firefox's vendored Fluent parser") from error
+    finally:
+        sys.path.remove(str(fluent_dependency))
 
     parser = FluentParser()
     relative_paths = sorted(path for path, _reference in FTL_MESSAGES)
@@ -529,9 +527,7 @@ def command_apply_translations(args: argparse.Namespace) -> int:
                     value = render_community_message(value, original)
                 else:
                     value = render_machine_message(value)
-                replace_message(
-                    lines, key, format_ftl_message(key, value), find_ftl_message
-                )
+                replace_message(lines, format_ftl_message(key, value), span)
             target.write_text("".join(lines), encoding="utf-8")
 
         for (relative_path, _reference_path), keys in PROPERTIES_MESSAGES.items():
@@ -544,7 +540,7 @@ def command_apply_translations(args: argparse.Namespace) -> int:
                     replacement = [f"{key} = {value}\n"]
                 else:
                     replacement = replace_product_name(locale, lines[slice(*span)])
-                replace_message(lines, key, replacement, find_property)
+                replace_message(lines, replacement, span)
             target.write_text("".join(lines), encoding="utf-8")
 
     validate_fluent_resources(
@@ -589,9 +585,25 @@ def command_apply_translations(args: argparse.Namespace) -> int:
         ],
     }
     marker_path = args.workspace / MARKER_NAME
-    marker_path.write_text(
-        json.dumps(marker, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    marker_content = json.dumps(marker, ensure_ascii=False, indent=2) + "\n"
+    marker_mode = (
+        marker_path.stat().st_mode & 0o777
+        if marker_path.is_file() and not marker_path.is_symlink()
+        else 0o644
     )
+    descriptor, staging_name = tempfile.mkstemp(
+        prefix=f".{marker_path.name}.", dir=marker_path.parent
+    )
+    staging_path = Path(staging_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as stream:
+            stream.write(marker_content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        staging_path.chmod(marker_mode)
+        staging_path.replace(marker_path)
+    finally:
+        staging_path.unlink(missing_ok=True)
     print(
         f"Prepared {len(supported_locales)} external locales: "
         f"{len(reviewed_locales)} reviewed, {len(draft_locales)} "
@@ -729,271 +741,16 @@ def load_marker(
     return marker
 
 
-def language_pack_manifest(path: Path) -> tuple[dict, list[str]]:
-    try:
-        with path.open("rb") as stream:
-            if stream.read(4) != b"PK\x03\x04":
-                raise ValueError("missing ZIP local-file signature")
-        with zipfile.ZipFile(path) as archive:
-            members = archive.namelist()
-            corrupt_member = archive.testzip()
-            if corrupt_member is not None:
-                raise ValueError(
-                    f"Language pack has a corrupt member {corrupt_member!r}: {path}"
-                )
-            manifest = json.loads(archive.read("manifest.json"))
-    except (
-        KeyError,
-        NotImplementedError,
-        RuntimeError,
-        UnicodeDecodeError,
-        ValueError,
-        zipfile.BadZipFile,
-        zlib.error,
-    ) as error:
-        raise ValueError(f"Invalid language pack: {path}: {error}") from error
-    if not isinstance(manifest, dict):
-        raise ValueError(f"Language-pack manifest is not an object: {path}")
-    return manifest, members
-
-
-def validate_language_pack(path: Path, locale: str) -> str | None:
-    try:
-        manifest, members = language_pack_manifest(path)
-    except ValueError as error:
-        return str(error)
-    browser_settings = manifest.get("browser_specific_settings", {})
-    if not isinstance(browser_settings, dict):
-        return "language-pack browser_specific_settings is invalid"
-    gecko = browser_settings.get("gecko", {})
-    if not gecko:
-        applications = manifest.get("applications", {})
-        if not isinstance(applications, dict):
-            return "language-pack applications metadata is invalid"
-        gecko = applications.get("gecko", {})
-    if not isinstance(gecko, dict):
-        return "language-pack Gecko metadata is invalid"
-    extension_id = gecko.get("id")
-    expected_id = f"langpack-{locale}@{LANGPACK_EID_HOST}"
-    if extension_id != expected_id:
-        return f"language-pack ID {extension_id!r} (expected {expected_id!r})"
-    if manifest.get("langpack_id") != locale:
-        return (
-            f"language-pack locale {manifest.get('langpack_id')!r} "
-            f"(expected {locale!r})"
-        )
-    languages = manifest.get("languages")
-    if not isinstance(languages, dict) or set(languages) != {locale}:
-        actual_languages = (
-            sorted(str(key) for key in languages)
-            if isinstance(languages, dict)
-            else languages
-        )
-        return (
-            f"language-pack languages {actual_languages!r} "
-            f"(expected [{locale!r}])"
-        )
-    if not isinstance(languages[locale], dict):
-        return f"language-pack language metadata is invalid for {locale!r}"
-    if manifest.get("manifest_version") != 2:
-        return "language-pack manifest_version is not 2"
-    for field, prefix in BRANDED_MANIFEST_FIELDS:
-        value = manifest.get(field)
-        if not isinstance(value, str) or not value.strip():
-            return f"language-pack {field} is invalid"
-        if not value.startswith(prefix):
-            return f"language-pack {field} does not identify Mercury"
-        if "firefox" in value.casefold():
-            return f"language-pack {field} still identifies Firefox"
-    chrome_resources = languages[locale].get("chrome_resources")
-    if not isinstance(chrome_resources, dict) or not chrome_resources:
-        return f"language-pack chrome resources are invalid for {locale!r}"
-    sources = manifest.get("sources")
-    if not isinstance(sources, dict) or sources.get("browser") != {
-        "base_path": "browser/"
-    }:
-        return "language-pack browser source mapping is invalid"
-    if not any(
-        name.startswith("browser/") and not name.endswith("/") for name in members
-    ):
-        return "language pack contains no browser localization resources"
-    return None
-
-
-def validate_tar_archive(path: Path) -> str | None:
-    try:
-        with tarfile.open(path, mode="r:*") as archive:
-            if not archive.getmembers():
-                return "archive is empty"
-    except (EOFError, OSError, tarfile.TarError) as error:
-        return f"invalid tar archive: {error}"
-    return None
-
-
-def validate_tar_xz(path: Path) -> str | None:
-    try:
-        with path.open("rb") as stream:
-            if stream.read(6) != b"\xfd7zXZ\x00":
-                return "missing XZ stream signature"
-    except OSError as error:
-        return f"unable to read XZ archive: {error}"
-    return validate_tar_archive(path)
-
-
-def validate_uncompressed_tar(path: Path) -> str | None:
-    try:
-        with path.open("rb") as stream:
-            signature = stream.read(6)
-    except OSError as error:
-        return f"unable to read tar archive: {error}"
-    if signature.startswith((b"\x1f\x8b", b"BZh", b"\xfd7zXZ\x00")):
-        return "archive is compressed instead of an uncompressed TAR"
-    return validate_tar_archive(path)
-
-
-def validate_zip_archive(path: Path) -> str | None:
-    try:
-        with path.open("rb") as stream:
-            if stream.read(4) != b"PK\x03\x04":
-                return "missing ZIP local-file signature"
-        with zipfile.ZipFile(path) as archive:
-            if not archive.infolist():
-                return "archive is empty"
-            corrupt_member = archive.testzip()
-            if corrupt_member is not None:
-                return f"corrupt ZIP member {corrupt_member!r}"
-    except (
-        NotImplementedError,
-        OSError,
-        RuntimeError,
-        zipfile.BadZipFile,
-        zlib.error,
-    ) as error:
-        return f"invalid ZIP archive: {error}"
-    return None
-
-
-def validate_pe_executable(path: Path) -> str | None:
-    try:
-        with path.open("rb") as stream:
-            dos_header = stream.read(64)
-            if len(dos_header) != 64 or dos_header[:2] != b"MZ":
-                return "missing DOS executable header"
-            pe_offset = int.from_bytes(dos_header[60:64], "little")
-            if pe_offset < 64 or pe_offset > path.stat().st_size - 4:
-                return "invalid PE header offset"
-            stream.seek(pe_offset)
-            if stream.read(4) != b"PE\0\0":
-                return "missing PE executable signature"
-    except OSError as error:
-        return f"unable to read executable: {error}"
-    return None
-
-
-def validate_dmg(path: Path) -> str | None:
-    try:
-        if path.stat().st_size < 512:
-            return "DMG is smaller than its UDIF trailer"
-        with path.open("rb") as stream:
-            stream.seek(-512, 2)
-            if stream.read(4) != b"koly":
-                return "missing UDIF koly trailer"
-    except OSError as error:
-        return f"unable to read DMG: {error}"
-    return None
-
-
-ARTIFACT_VALIDATORS = {
-    "target.tar.xz": validate_tar_xz,
-    "target.tar": validate_uncompressed_tar,
-    "target.zip": validate_zip_archive,
-    "target.installer.exe": validate_pe_executable,
-    "target.dmg": validate_dmg,
-}
-
-REQUIRED_PACKAGES = {
-    "linux": (("target.tar.xz",),),
-    "windows": (("target.zip",), ("target.installer.exe",)),
-    "macos": (("target.tar", "target.dmg"),),
-}
-
-
-def validate_locale_artifacts(
-    locale_dir: Path, locale: str, platform: str
-) -> list[str]:
-    problems = []
-    langpack = locale_dir / "target.langpack.xpi"
-    if not langpack.is_file() or langpack.stat().st_size == 0:
-        problems.append("language pack target.langpack.xpi")
-    else:
-        problem = validate_language_pack(langpack, locale)
-        if problem is not None:
-            problems.append(problem)
-
-    for alternatives in REQUIRED_PACKAGES[platform]:
-        failures = []
-        valid = False
-        for name in alternatives:
-            path = locale_dir / name
-            if not path.is_file() or path.stat().st_size == 0:
-                failures.append(f"{name}: missing or empty")
-                continue
-            problem = ARTIFACT_VALIDATORS[name](path)
-            if problem is None:
-                valid = True
-                break
-            failures.append(f"{name}: {problem}")
-        if not valid:
-            problems.append("platform artifact " + "; ".join(failures))
-    return problems
-
-
-def command_manifest(args: argparse.Namespace) -> int:
+def command_validate_workspace(args: argparse.Namespace) -> int:
     changesets = load_changesets(args.changesets)
-    locales = locales_for_platform(changesets, args.platform)
-    marker = load_marker(
+    locales = locales_for_platform(changesets, "all")
+    load_marker(
         args.workspace,
         args.translations,
         args.reference_root,
-        locales_for_platform(changesets, "all"),
+        locales,
     )
-    reviewed = set(marker.get("reviewedLocales", []))
-    draft_targets = marker["machineDraftTargets"]
-
-    rows = []
-    incomplete = []
-    for locale in locales:
-        if args.overall == "planned":
-            status = "planned"
-        else:
-            locale_dir = args.destination / locale
-            problems = validate_locale_artifacts(locale_dir, locale, args.platform)
-            status = "produced" if not problems else "incomplete"
-            if problems:
-                incomplete.append(f"{locale} ({'; '.join(problems)})")
-        translation = (
-            "reviewed"
-            if locale in reviewed
-            else f"machine-draft/{draft_targets[locale]}"
-        )
-        rows.append(f"{locale}\t{args.platform}\t{translation}\t{status}")
-
-    effective_overall = (
-        "incomplete" if args.overall == "success" and incomplete else args.overall
-    )
-    content = [
-        f"# overall={effective_overall}",
-        f"# l10n_revision={EXPECTED_L10N_REVISION}",
-        f"# translations_sha256={marker['translationsSha256']}",
-        "locale\tplatform\tmercury_messages\tstatus",
-        *rows,
-    ]
-    args.output.write_text("\n".join(content) + "\n", encoding="utf-8")
-    if args.overall == "success" and incomplete:
-        raise ValueError(
-            "Firefox reported success but produced incomplete artifacts for: "
-            + ", ".join(incomplete)
-        )
+    print(f"Validated localization workspace for {len(locales)} locales.")
     return 0
 
 
@@ -1022,20 +779,12 @@ def build_parser() -> argparse.ArgumentParser:
     target_parser.add_argument("--environment", type=Path, required=True)
     target_parser.set_defaults(handler=command_target_platform)
 
-    manifest_parser = subparsers.add_parser("manifest")
-    manifest_parser.add_argument("--changesets", type=Path, required=True)
-    manifest_parser.add_argument("--workspace", type=Path, required=True)
-    manifest_parser.add_argument("--translations", type=Path, required=True)
-    manifest_parser.add_argument("--reference-root", type=Path, required=True)
-    manifest_parser.add_argument("--destination", type=Path, required=True)
-    manifest_parser.add_argument("--output", type=Path, required=True)
-    manifest_parser.add_argument(
-        "--platform", choices=list(PLATFORM_PREFIXES), required=True
-    )
-    manifest_parser.add_argument(
-        "--overall", choices=["planned", "success", "failed"], required=True
-    )
-    manifest_parser.set_defaults(handler=command_manifest)
+    validation_parser = subparsers.add_parser("validate-workspace")
+    validation_parser.add_argument("--changesets", type=Path, required=True)
+    validation_parser.add_argument("--workspace", type=Path, required=True)
+    validation_parser.add_argument("--translations", type=Path, required=True)
+    validation_parser.add_argument("--reference-root", type=Path, required=True)
+    validation_parser.set_defaults(handler=command_validate_workspace)
     return parser
 
 
@@ -1043,7 +792,9 @@ def main() -> int:
     args = build_parser().parse_args()
     try:
         return args.handler(args)
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+    except KeyboardInterrupt:
+        return 130
+    except (OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 

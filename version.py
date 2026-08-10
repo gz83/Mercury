@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from firefox_sync import sync_checkout
-from release_config import FIREFOX_RELEASE
+from release_config import FIREFOX_COMMIT, FIREFOX_RELEASE
 
 
 DEFAULT_FIREFOX_REVISION = FIREFOX_RELEASE
@@ -26,20 +26,23 @@ WARNING: tracked and untracked changes in the Firefox checkout are removed.
 
 def main() -> int:
     arguments = sys.argv[1:]
-    if arguments and arguments[0] in {"--help", "-h"}:
+    if arguments in (["--help"], ["-h"]):
         print(HELP, end="")
         return 0
-    if arguments and arguments[0]:
+    if arguments:
+        argument = arguments[0] or "<empty>"
+        print(f"Unknown option: {argument}", file=sys.stderr)
         print(HELP, end="", file=sys.stderr)
         return 2
     try:
-        sync_checkout(DEFAULT_FIREFOX_REVISION, remote_branch=False)
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
+        sync_checkout(
+            DEFAULT_FIREFOX_REVISION,
+            remote_branch=False,
+            expected_commit=FIREFOX_COMMIT,
+        )
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

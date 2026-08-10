@@ -5,23 +5,28 @@
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = REPOSITORY_ROOT / "release.json"
 PATCH_DIRECTORY = REPOSITORY_ROOT / "patches" / "firefox"
 PATCH_MANIFEST_PATH = REPOSITORY_ROOT / "patches" / "manifest.json"
+_PATCH_FILENAME_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\.patch")
+_PATCH_ROLE_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+_FIREFOX_VERSION_PATTERN = re.compile(r"[0-9]+(?:\.[0-9]+)+")
+_FIREFOX_RELEASE_PATTERN = re.compile(r"FIREFOX_[A-Z0-9_]+_RELEASE")
+_COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
 
 
-def required_string(mapping: Dict[str, Any], key: str, location: str) -> str:
+def required_string(mapping: dict[str, Any], key: str, location: str) -> str:
     value = mapping.get(key)
     if not isinstance(value, str) or not value:
         raise ValueError(f"{location}.{key} must be a non-empty string.")
     return value
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     try:
         data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
@@ -35,7 +40,19 @@ def load_config() -> Dict[str, Any]:
     return data
 
 
-def load_patch_manifest() -> Tuple[Tuple[Path, ...], Dict[str, Tuple[Path, ...]]]:
+def _release_metadata() -> tuple[str, str, str, str]:
+    config = load_config()
+    firefox = config["firefox"]
+    localization = config["l10n"]
+    return (
+        required_string(firefox, "version", "firefox"),
+        required_string(firefox, "release", "firefox"),
+        required_string(firefox, "commit", "firefox"),
+        required_string(localization, "commit", "l10n"),
+    )
+
+
+def load_patch_manifest() -> tuple[tuple[Path, ...], dict[str, tuple[Path, ...]]]:
     try:
         data = json.loads(PATCH_MANIFEST_PATH.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
@@ -48,15 +65,15 @@ def load_patch_manifest() -> Tuple[Tuple[Path, ...], Dict[str, Tuple[Path, ...]]
     if not isinstance(entries, list) or not entries:
         raise ValueError(f"Patch manifest has no patches: {PATCH_MANIFEST_PATH}")
 
-    files: List[Path] = []
-    roles: Dict[str, List[Path]] = {}
+    files: list[Path] = []
+    roles: dict[str, list[Path]] = {}
     seen = set()
     for index, entry in enumerate(entries):
         location = f"patches[{index}]"
         if not isinstance(entry, dict):
             raise ValueError(f"{location} must be an object.")
         filename = required_string(entry, "file", location)
-        if re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*\.patch", filename) is None:
+        if _PATCH_FILENAME_PATTERN.fullmatch(filename) is None:
             raise ValueError(f"{location}.file has an invalid format.")
         if filename in seen:
             raise ValueError(f"Patch manifest repeats {filename}.")
@@ -67,7 +84,7 @@ def load_patch_manifest() -> Tuple[Tuple[Path, ...], Dict[str, Tuple[Path, ...]]
         patch_roles = entry.get("roles")
         if not isinstance(patch_roles, list) or any(
             not isinstance(role, str)
-            or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", role) is None
+            or _PATCH_ROLE_PATTERN.fullmatch(role) is None
             for role in patch_roles
         ):
             raise ValueError(f"{location}.roles must contain valid role names.")
@@ -88,36 +105,26 @@ def load_patch_manifest() -> Tuple[Tuple[Path, ...], Dict[str, Tuple[Path, ...]]
             details.append("unlisted: " + ", ".join(unlisted))
         detail = "; ".join(details)
         raise ValueError(f"Patch manifest does not match its directory ({detail}).")
-    return tuple(files), {
-        role: tuple(role_files) for role, role_files in roles.items()
-    }
+    return tuple(files), {role: tuple(paths) for role, paths in roles.items()}
 
 
-CONFIG = load_config()
-FIREFOX = CONFIG["firefox"]
-LOCALIZATION = CONFIG["l10n"]
+FIREFOX_VERSION, FIREFOX_RELEASE, FIREFOX_COMMIT, L10N_COMMIT = (
+    _release_metadata()
+)
 
-FIREFOX_VERSION = required_string(FIREFOX, "version", "firefox")
-FIREFOX_RELEASE = required_string(FIREFOX, "release", "firefox")
-FIREFOX_COMMIT = required_string(FIREFOX, "commit", "firefox")
-L10N_COMMIT = required_string(LOCALIZATION, "commit", "l10n")
-
-if re.fullmatch(r"[0-9]+(?:\.[0-9]+)+", FIREFOX_VERSION) is None:
+if _FIREFOX_VERSION_PATTERN.fullmatch(FIREFOX_VERSION) is None:
     raise ValueError("firefox.version has an invalid format.")
-if re.fullmatch(r"FIREFOX_[A-Z0-9_]+_RELEASE", FIREFOX_RELEASE) is None:
+if _FIREFOX_RELEASE_PATTERN.fullmatch(FIREFOX_RELEASE) is None:
     raise ValueError("firefox.release has an invalid format.")
-if re.fullmatch(r"[0-9a-f]{40}", FIREFOX_COMMIT) is None:
+if _COMMIT_PATTERN.fullmatch(FIREFOX_COMMIT) is None:
     raise ValueError("firefox.commit must be a lowercase 40-character Git hash.")
-if re.fullmatch(r"[0-9a-f]{40}", L10N_COMMIT) is None:
+if _COMMIT_PATTERN.fullmatch(L10N_COMMIT) is None:
     raise ValueError("l10n.commit must be a lowercase 40-character Git hash.")
-
-if not PATCH_DIRECTORY.is_dir():
-    raise ValueError(f"Firefox patch directory is missing: {PATCH_DIRECTORY}")
 
 PATCH_FILES, PATCH_ROLES = load_patch_manifest()
 
 
-def patches_for_role(role: str) -> Tuple[Path, ...]:
+def patches_for_role(role: str) -> tuple[Path, ...]:
     patches = PATCH_ROLES.get(role)
     if not patches:
         raise ValueError(f"Patch manifest does not define required role: {role}")

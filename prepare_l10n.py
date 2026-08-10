@@ -11,9 +11,14 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
 
-from bootstrap import default_source_directory, native_path, run, target_platform
+from bootstrap import (
+    default_source_directory,
+    git_output,
+    native_path,
+    run,
+    target_platform,
+)
 from release_config import (
     FIREFOX_COMMIT,
     FIREFOX_VERSION,
@@ -40,22 +45,7 @@ if the prepared Firefox checkout is not at its platform default location.
 """
 
 
-def command_output(
-    command: List[str], *, stderr: Optional[int] = None
-) -> Optional[str]:
-    result = subprocess.run(
-        command,
-        check=False,
-        stdout=subprocess.PIPE,
-        stderr=stderr,
-        universal_newlines=True,
-    )
-    if result.returncode:
-        return None
-    return result.stdout.strip()
-
-
-def command_succeeds(command: List[str]) -> bool:
+def command_succeeds(command: list[str]) -> bool:
     return (
         subprocess.run(
             command,
@@ -67,7 +57,7 @@ def command_succeeds(command: List[str]) -> bool:
     )
 
 
-def required_output(command: List[str]) -> str:
+def required_output(command: list[str]) -> str:
     result = subprocess.run(
         command,
         check=False,
@@ -104,9 +94,8 @@ def prepare(source_value: str, output_value: str) -> None:
         ["git", "-C", source_value, "rev-parse", "--git-dir"]
     ):
         raise ValueError(f"Localization Git repository not found: {source_value}")
-    if command_output(
+    if git_output(
         [
-            "git",
             "-C",
             str(firefox_directory),
             "rev-parse",
@@ -221,20 +210,19 @@ def prepare(source_value: str, output_value: str) -> None:
 
 def main() -> int:
     arguments = sys.argv[1:]
-    if arguments and arguments[0] in {"--help", "-h"}:
+    if arguments in (["--help"], ["-h"]):
         print(HELP, end="")
         return 0
-    if len(arguments) != 2:
+    if len(arguments) != 2 or any(
+        argument in {"--help", "-h"} for argument in arguments
+    ):
         print(HELP, end="", file=sys.stderr)
         return 2
     try:
         prepare(arguments[0], arguments[1])
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

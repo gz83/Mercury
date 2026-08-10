@@ -33,20 +33,19 @@ def restore_current_revision() -> None:
 
 def main() -> int:
     arguments = sys.argv[1:]
-    if arguments and arguments[0] in {"--help", "-h"}:
+    if arguments in (["--help"], ["-h"]):
         print(HELP, end="")
         return 0
-    if arguments and arguments[0]:
+    if arguments:
+        argument = arguments[0] or "<empty>"
+        print(f"Unknown option: {argument}", file=sys.stderr)
         print(HELP, end="", file=sys.stderr)
         return 2
     try:
         restore_current_revision()
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

@@ -11,7 +11,6 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import tempfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -152,7 +151,7 @@ def validate_firefox_checkout(script_directory: Path, source_value: str) -> Path
 
 def validate_l10n_workspace(
     script_directory: Path, source_directory: Path
-) -> Path:
+) -> None:
     workspace_value = os.environ.get("L10NBASEDIR")
     if not workspace_value or not native_path(workspace_value).is_dir():
         raise ValueError(
@@ -165,7 +164,7 @@ def validate_l10n_workspace(
         [
             sys.executable,
             str(script_directory / "l10n/locale_manager.py"),
-            "manifest",
+            "validate-workspace",
             "--changesets",
             str(source_directory / "browser/locales/l10n-changesets.json"),
             "--workspace",
@@ -174,17 +173,8 @@ def validate_l10n_workspace(
             str(script_directory / "l10n/translations.json"),
             "--reference-root",
             str(source_directory / "browser/locales/en-US"),
-            "--destination",
-            os.environ.get("TMPDIR") or tempfile.gettempdir(),
-            "--output",
-            os.devnull,
-            "--platform",
-            "linux",
-            "--overall",
-            "planned",
         ]
     )
-    return workspace
 
 
 def discover_archives(script_directory: Path, source_directory: Path) -> List[Path]:
@@ -253,30 +243,43 @@ def elf_architecture(content: bytes, binary_member: str) -> str:
 
 def inspect_archive(archive: Path) -> Tuple[str, str]:
     try:
-        with tarfile.open(archive, mode="r:*") as package:
-            application_members = [
-                member
-                for member in package.getmembers()
-                if re.fullmatch(r"[^/]+/application\.ini", member.name)
-            ]
+        with tarfile.open(archive, mode="r|*") as package:
+            application_members = []
+            binary_members = {}
+            for member in package:
+                if re.fullmatch(r"[^/]+/application\.ini", member.name):
+                    stream = package.extractfile(member)
+                    if stream is None:
+                        content = b""
+                    else:
+                        with stream:
+                            content = stream.read()
+                    application_members.append((member.name, content))
+
+                binary_match = re.fullmatch(r"([^/]+)/mercury", member.name)
+                if binary_match:
+                    content = None
+                    if member.isfile():
+                        stream = package.extractfile(member)
+                        if stream is not None:
+                            with stream:
+                                content = stream.read(20)
+                    binary_members[binary_match.group(1)] = (member, content)
+
             if len(application_members) != 1:
                 raise ValueError(
                     f"Expected one top-level application.ini in {archive}, "
                     f"found {len(application_members)}."
                 )
-            application_member = application_members[0]
-            application_stream = package.extractfile(application_member)
-            if application_stream is None:
-                version = ""
-            else:
-                version = application_version(application_stream.read())
+            application_name, application_content = application_members[0]
+            version = application_version(application_content)
             if not version:
                 raise ValueError(
                     "Could not read the Mercury version from "
-                    f"{application_member.name}."
+                    f"{application_name}."
                 )
 
-            archive_root = application_member.name.split("/", 1)[0]
+            archive_root = application_name.split("/", 1)[0]
             if (
                 SAFE_ARCHIVE_ROOT.fullmatch(archive_root) is None
                 or archive_root in {".", ".."}
@@ -285,26 +288,17 @@ def inspect_archive(archive: Path) -> Tuple[str, str]:
                     f"Unsafe top-level archive directory: {archive_root}"
                 )
             binary_name = f"{archive_root}/mercury"
-            binary_members = [
-                member for member in package.getmembers() if member.name == binary_name
-            ]
-            if not binary_members:
+            binary_result = binary_members.get(archive_root)
+            if binary_result is None:
                 raise ValueError(
                     f"Mercury executable not found in archive: {binary_name}"
                 )
-            binary_member = binary_members[-1]
-            if not binary_member.isfile():
+            binary_member, binary_content = binary_result
+            if not binary_member.isfile() or binary_content is None:
                 raise ValueError(
                     f"Mercury executable is not a readable ELF file: {binary_name}"
                 )
-            binary_stream = package.extractfile(binary_member)
-            if binary_stream is None:
-                raise ValueError(
-                    f"Mercury executable is not a readable ELF file: {binary_name}"
-                )
-            detected_architecture = elf_architecture(
-                binary_stream.read(20), binary_name
-            )
+            detected_architecture = elf_architecture(binary_content, binary_name)
     except (EOFError, OSError, tarfile.TarError) as error:
         raise ValueError(
             f"Unable to read Mercury archive: {archive}: {error}"
@@ -417,12 +411,9 @@ def main() -> int:
     except UsageError as error:
         print(error, file=sys.stderr)
         return 2
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

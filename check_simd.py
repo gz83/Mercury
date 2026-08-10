@@ -208,12 +208,12 @@ def detect_x86_features() -> set[str]:
         _, _, leaf1_ecx, _ = cpuid(1)
         features: set[str] = set()
         leaf1_bits = {
-            "sse3": (leaf1_ecx, 0),
-            "ssse3": (leaf1_ecx, 9),
-            "sse4_1": (leaf1_ecx, 19),
+            "sse3": 0,
+            "ssse3": 9,
+            "sse4_1": 19,
         }
-        for name, (value, bit) in leaf1_bits.items():
-            if value & (1 << bit):
+        for name, bit in leaf1_bits.items():
+            if leaf1_ecx & (1 << bit):
                 features.add(name)
 
         has_xsave = bool(leaf1_ecx & (1 << 26))
@@ -238,12 +238,13 @@ def parse_arguments(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Check whether this host can run a Mercury x86 profile.",
     )
-    parser.add_argument(
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument(
         "--profile",
         choices=tuple(PROFILE_REQUIREMENTS),
         help=f"profile to check (default: {DEFAULT_PROFILE})",
     )
-    parser.add_argument(
+    selection.add_argument(
         "--list-profiles",
         action="store_true",
         help="list known profiles and their requirements, then exit",
@@ -274,14 +275,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"Mercury profile: {profile}")
 
         available = detect_x86_features()
-        feature_results = [
-            (feature, feature in available) for feature in requirements
-        ]
-        for feature, is_available in feature_results:
+        for feature in requirements:
+            is_available = feature in available
             status = "PASS" if is_available else "FAIL"
             print(f"[{status}] {FEATURE_NAMES[feature]}")
 
-        if not all(is_available for _, is_available in feature_results):
+        if not all(feature in available for feature in requirements):
             print(
                 f"UNSUPPORTED: this machine cannot safely run the {profile} build.",
                 file=sys.stderr,

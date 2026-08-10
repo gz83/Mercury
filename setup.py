@@ -11,7 +11,6 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from bootstrap import (
     default_source_directory,
@@ -28,7 +27,7 @@ from release_config import (
 )
 
 
-PROFILE_CONFIGS: Dict[str, Tuple[str, str]] = {
+PROFILE_CONFIGS: dict[str, tuple[str, str]] = {
     "--linux": ("Linux AVX", "mozconfig"),
     "--win": ("Windows native AVX", "mozconfig-win"),
     "--cross": ("Windows MinGW AVX", "mozconfig-win-cross"),
@@ -126,18 +125,18 @@ class UsageError(Exception):
 
 @dataclass(frozen=True)
 class SetupOptions:
-    profile: str
     label: str
     mozconfig: str
     check_only: bool
 
 
-def parse_arguments(arguments: List[str]) -> SetupOptions:
-    selected: Optional[str] = None
+def parse_arguments(arguments: list[str]) -> SetupOptions:
+    if arguments in (["-h"], ["--help"]):
+        raise HelpRequested
+
+    selected = None
     check_only = False
     for argument in arguments:
-        if argument in {"-h", "--help"}:
-            raise HelpRequested
         if argument == "--check":
             if check_only:
                 raise UsageError("--check may be specified only once.")
@@ -151,10 +150,10 @@ def parse_arguments(arguments: List[str]) -> SetupOptions:
 
     profile = selected or "--linux"
     label, mozconfig = PROFILE_CONFIGS[profile]
-    return SetupOptions(profile, label, mozconfig, check_only)
+    return SetupOptions(label=label, mozconfig=mozconfig, check_only=check_only)
 
 
-def git_command(source_directory: Path, arguments: List[str]) -> List[str]:
+def git_command(source_directory: Path, arguments: list[str]) -> list[str]:
     return [
         "git",
         "-c",
@@ -165,7 +164,7 @@ def git_command(source_directory: Path, arguments: List[str]) -> List[str]:
     ]
 
 
-def command_succeeds(command: List[str]) -> bool:
+def command_succeeds(command: list[str]) -> bool:
     try:
         return (
             subprocess.run(
@@ -180,54 +179,50 @@ def command_succeeds(command: List[str]) -> bool:
         return False
 
 
-def resolve_firefox_checkout() -> Tuple[str, Path]:
+def resolve_firefox_checkout() -> tuple[str, Path]:
     source_value = os.environ.get("MOZ_SRC_DIR") or default_source_directory(
         target_platform([])
     )
     os.environ["MOZ_SRC_DIR"] = source_value
     source_directory = native_path(source_value)
 
-    inside_work_tree = git_output(
+    revision_output = git_output(
         [
             "-c",
             "core.fsmonitor=false",
             "-C",
             str(source_directory),
             "rev-parse",
-            "--is-inside-work-tree",
+            "--show-toplevel",
+            "HEAD",
         ],
         stderr=subprocess.DEVNULL,
     )
-    if inside_work_tree != "true":
+    revision_lines = revision_output.splitlines()
+    if len(revision_lines) != 2:
         raise ValueError(
             f"Firefox Git checkout not found at {source_value}. "
             "Run ./bootstrap.py first."
         )
 
-    current_commit = git_output(
-        [
-            "-c",
-            "core.fsmonitor=false",
-            "-C",
-            str(source_directory),
-            "rev-parse",
-            "HEAD",
-        ],
-        stderr=subprocess.DEVNULL,
-    )
+    root_value, current_commit = revision_lines
+    root_directory = native_path(root_value).resolve()
+    if root_directory != source_directory.resolve():
+        raise ValueError(
+            "MOZ_SRC_DIR must point to the Firefox Git work-tree root: "
+            f"{root_value}"
+        )
     if current_commit != FIREFOX_COMMIT:
         raise ValueError(
             f"Expected {FIREFOX_RELEASE} ({FIREFOX_COMMIT}), "
             f"found {current_commit or 'an unreadable revision'}."
         )
-    return source_value, source_directory.resolve()
+    return source_value, root_directory
 
 
 def required_inputs(
     mercury_directory: Path, options: SetupOptions
-) -> Tuple[List[Path], Path]:
-    patches = list(PATCH_FILES)
-
+) -> tuple[tuple[Path, ...], Path]:
     for source_name, _ in FILE_OVERLAYS:
         source = mercury_directory / source_name
         if not source.is_file():
@@ -243,12 +238,10 @@ def required_inputs(
     mozconfig = mercury_directory / "mozconfigs" / options.mozconfig
     if not mozconfig.is_file():
         raise ValueError(f"Mozconfig is missing: {mozconfig}")
-    return patches, mozconfig
+    return PATCH_FILES, mozconfig
 
 
-def patch_status(
-    source_directory: Path, patch: Path
-) -> str:
+def patch_status(source_directory: Path, patch: Path) -> str:
     if command_succeeds(
         git_command(source_directory, ["apply", "--check", str(patch)])
     ):
@@ -264,8 +257,8 @@ def patch_status(
 
 
 def inspect_patches(
-    source_directory: Path, patches: List[Path]
-) -> List[Tuple[Path, str]]:
+    source_directory: Path, patches: tuple[Path, ...]
+) -> list[tuple[Path, str]]:
     statuses = [
         (patch, patch_status(source_directory, patch)) for patch in patches
     ]
@@ -280,7 +273,7 @@ def inspect_patches(
 
 
 def apply_patches(
-    source_directory: Path, statuses: List[Tuple[Path, str]]
+    source_directory: Path, statuses: list[tuple[Path, str]]
 ) -> None:
     for patch, status in statuses:
         if status == "applied":
@@ -295,19 +288,32 @@ def apply_patches(
 
 def copy_file(source: Path, destination: Path, description: str) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, destination)
+    descriptor, staging_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.setup-",
+        dir=destination.parent,
+    )
+    os.close(descriptor)
+    staging = Path(staging_name)
+    try:
+        shutil.copy2(source, staging)
+        staging.replace(destination)
+    finally:
+        staging.unlink(missing_ok=True)
     print(f"{description}: {destination}")
 
 
 def replace_overlay_directory(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    staging = Path(
+    temporary_root = Path(
         tempfile.mkdtemp(
             prefix=f".{destination.name}.setup-",
             dir=destination.parent,
         )
     )
-    shutil.rmtree(staging)
+    staging = temporary_root / "new"
+    backup = temporary_root / "previous"
+    had_destination = destination.is_symlink() or destination.exists()
+    cleanup_temporary_root = True
     try:
         shutil.copytree(
             source,
@@ -315,14 +321,25 @@ def replace_overlay_directory(source: Path, destination: Path) -> None:
             copy_function=shutil.copy2,
             symlinks=True,
         )
-        if destination.is_symlink() or destination.is_file():
-            destination.unlink()
-        elif destination.is_dir():
-            shutil.rmtree(destination)
-        staging.replace(destination)
+        if had_destination:
+            destination.replace(backup)
+        try:
+            staging.replace(destination)
+        except BaseException:
+            destination_missing = not (
+                destination.is_symlink() or destination.exists()
+            )
+            backup_exists = backup.is_symlink() or backup.exists()
+            if had_destination and destination_missing and backup_exists:
+                try:
+                    backup.replace(destination)
+                except BaseException:
+                    cleanup_temporary_root = False
+                    raise
+            raise
     finally:
-        if staging.is_dir():
-            shutil.rmtree(staging)
+        if cleanup_temporary_root:
+            shutil.rmtree(temporary_root, ignore_errors=True)
     print(f"Synchronized overlay: {destination}")
 
 
@@ -371,7 +388,13 @@ def prepare(options: SetupOptions) -> None:
         print(f"Firefox checkout: {source_value}")
         print(f"Firefox revision: {FIREFOX_RELEASE} ({FIREFOX_COMMIT})")
         print(f"Patches: {pending} pending, {applied} already applied")
-        print("Overlays: 6 explicit files and browser/branding/mercury/")
+        directory_names = ", ".join(
+            f"{destination}/" for _, destination in DIRECTORY_OVERLAYS
+        )
+        print(
+            f"Overlays: {len(FILE_OVERLAYS)} explicit files and "
+            f"{directory_names}"
+        )
         print(f"Build profile: {options.label} ({mozconfig.name})")
         print("Validation completed without modifying the checkout.")
         return
@@ -401,12 +424,9 @@ def main() -> int:
 
     try:
         prepare(options)
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
     except subprocess.CalledProcessError as error:
         return error.returncode or 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

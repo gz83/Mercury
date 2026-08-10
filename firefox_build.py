@@ -26,7 +26,14 @@ def configured_checkout() -> Path:
         os.name == "nt" or os.access(str(mach), os.X_OK)
     )
     inside_work_tree = git_output(
-        ["-C", str(source_directory), "rev-parse", "--is-inside-work-tree"],
+        [
+            "-c",
+            "core.fsmonitor=false",
+            "-C",
+            str(source_directory),
+            "rev-parse",
+            "--is-inside-work-tree",
+        ],
         stderr=subprocess.DEVNULL,
     )
     if not executable or inside_work_tree != "true":

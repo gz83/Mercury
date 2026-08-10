@@ -10,9 +10,9 @@ import posixpath
 import shutil
 import sys
 import tarfile
+import tempfile
 import time
 import zipfile
-import zlib
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -198,86 +198,94 @@ def create_linux_portable(archive: Path, output: Path, launcher: Path) -> None:
         )
     try:
         with tarfile.open(archive, mode="r:*") as source:
-            members = source.getmembers()
-            if not members:
-                raise ValueError(f"Archive is empty: {archive}")
-            normalized = [validate_member(member.name) for member in members]
-            for member, name in zip(members, normalized):
-                validate_link(member, name)
-            executable = [
-                member
-                for member, name in zip(members, normalized)
-                if name == "mercury/mercury"
-            ]
-            if (
-                not executable
-                or not executable[-1].isfile()
-                or executable[-1].mode & 0o111 == 0
-            ):
-                raise ValueError(
-                    "Linux Mercury executable is missing from the package."
-                )
-
-            unsupported = [
-                member.name
-                for member in members
-                if not (
-                    member.isfile()
-                    or member.isdir()
-                    or member.issym()
-                    or member.islnk()
-                )
-            ]
-            if unsupported:
-                raise ValueError(
-                    f"Unsupported Linux archive member: {unsupported[0]}"
-                )
-
-            output.parent.mkdir(parents=True, exist_ok=True)
             archive_root = output.name[:-4]
             if archive_root in {"", ".", ".."}:
                 raise ValueError(f"Invalid Linux portable output name: {output.name}")
+            output.parent.mkdir(parents=True, exist_ok=True)
             now = time.time()
-            with zipfile.ZipFile(
-                output,
-                mode="w",
-                compression=zipfile.ZIP_DEFLATED,
-                allowZip64=True,
-            ) as destination:
-                destination.writestr(
-                    linux_zip_info(archive_root, 0o40755, now, directory=True), b""
-                )
-                launcher_info = linux_zip_info(
-                    f"{archive_root}/MERCURY_PORTABLE",
-                    0o100000 | (launcher.stat().st_mode & 0o777),
-                    launcher.stat().st_mtime,
-                )
-                with launcher.open("rb") as stream, destination.open(
-                    launcher_info, mode="w", force_zip64=True
-                ) as launcher_output:
-                    shutil.copyfileobj(stream, launcher_output)
-
-                if "mercury" not in normalized and "mercury/" not in normalized:
+            with tempfile.TemporaryDirectory(
+                prefix=f".{output.name}.", dir=output.parent
+            ) as temporary_directory:
+                staged_output = Path(temporary_directory) / output.name
+                with zipfile.ZipFile(
+                    staged_output,
+                    mode="w",
+                    compression=zipfile.ZIP_DEFLATED,
+                    allowZip64=True,
+                ) as destination:
                     destination.writestr(
                         linux_zip_info(
-                            f"{archive_root}/mercury", 0o40755, now, directory=True
+                            archive_root, 0o40755, now, directory=True
                         ),
                         b"",
                     )
-                for member, name in zip(members, normalized):
-                    target_name = f"{archive_root}/{name}"
-                    if member.isdir():
+                    launcher_stat = launcher.stat()
+                    launcher_info = linux_zip_info(
+                        f"{archive_root}/MERCURY_PORTABLE",
+                        0o100000 | (launcher_stat.st_mode & 0o777),
+                        launcher_stat.st_mtime,
+                    )
+                    with launcher.open("rb") as stream, destination.open(
+                        launcher_info, mode="w", force_zip64=True
+                    ) as launcher_output:
+                        shutil.copyfileobj(stream, launcher_output)
+
+                    member_count = 0
+                    root_present = False
+                    executable_valid = False
+                    for member in source:
+                        member_count += 1
+                        name = validate_member(member.name)
+                        validate_link(member, name)
+                        if not (
+                            member.isfile()
+                            or member.isdir()
+                            or member.issym()
+                            or member.islnk()
+                        ):
+                            raise ValueError(
+                                f"Unsupported Linux archive member: {member.name}"
+                            )
+                        if name in {"mercury", "mercury/"} and member.isdir():
+                            root_present = True
+                        if name == "mercury/mercury":
+                            executable_valid = (
+                                member.isfile() and member.mode & 0o111 != 0
+                            )
+
+                        target_name = f"{archive_root}/{name}"
+                        if member.isdir():
+                            destination.writestr(
+                                linux_zip_info(
+                                    target_name,
+                                    0o040000 | member.mode,
+                                    member.mtime,
+                                    directory=True,
+                                ),
+                                b"",
+                            )
+                        else:
+                            copy_tar_file_to_zip(
+                                source, destination, member, target_name
+                            )
+
+                    if member_count == 0:
+                        raise ValueError(f"Archive is empty: {archive}")
+                    if not root_present:
                         destination.writestr(
                             linux_zip_info(
-                                target_name, 0o040000 | member.mode, member.mtime,
+                                f"{archive_root}/mercury",
+                                0o40755,
+                                now,
                                 directory=True,
                             ),
                             b"",
                         )
-                    else:
-                        copy_tar_file_to_zip(
-                            source, destination, member, target_name
+                    if not executable_valid:
+                        raise ValueError(
+                            "Linux Mercury executable is missing from the package."
                         )
+                os.replace(staged_output, output)
     except (EOFError, OSError, tarfile.TarError, zipfile.BadZipFile) as error:
         raise ValueError(
             f"Invalid Linux package archive: {archive}: {error}"
@@ -298,20 +306,12 @@ def directory_zip_info(name: str) -> zipfile.ZipInfo:
     return member
 
 
-def zip_compression(content: bytes) -> int:
-    compressor = zlib.compressobj(wbits=-15)
-    compressed = compressor.compress(content) + compressor.flush()
-    if len(compressed) < len(content):
-        return zipfile.ZIP_DEFLATED
-    return zipfile.ZIP_STORED
-
-
 def add_zip_launcher(destination: zipfile.ZipFile, launcher: Path) -> None:
     content = launcher.read_bytes()
     member = zipfile.ZipInfo("MERCURY.BAT", time.localtime()[:6])
     member.create_system = 3
     member.external_attr = launcher.stat().st_mode << 16
-    member.compress_type = zip_compression(content)
+    member.compress_type = zipfile.ZIP_DEFLATED
     destination.writestr(member, content)
 
 
@@ -323,12 +323,6 @@ def create_windows_portable(archive: Path, output: Path, launcher: Path) -> None
             members = source.infolist()
             if not members:
                 raise ValueError(f"Archive is empty: {archive}")
-            corrupt_member = source.testzip()
-            if corrupt_member is not None:
-                raise ValueError(
-                    f"Invalid Windows package archive: {archive}: "
-                    f"corrupt member {corrupt_member}"
-                )
             normalized = [validate_member(member.filename) for member in members]
             executable = [
                 member
@@ -344,30 +338,41 @@ def create_windows_portable(archive: Path, output: Path, launcher: Path) -> None
                     raise ValueError(f"Unsafe archive member: {name}")
 
             output.parent.mkdir(parents=True, exist_ok=True)
-            with zipfile.ZipFile(
-                output, mode="w", compression=zipfile.ZIP_DEFLATED
-            ) as destination:
-                add_zip_launcher(destination, launcher)
-                if "mercury" not in normalized and "mercury/" not in normalized:
-                    destination.writestr(directory_zip_info("mercury/"), b"")
-                for member, name in zip(members, normalized):
-                    copied = copy.copy(member)
-                    copied.filename = name
-                    content = b"" if member.is_dir() else source.read(member)
-                    copied.compress_type = (
-                        zipfile.ZIP_STORED
-                        if member.is_dir()
-                        else zip_compression(content)
-                    )
-                    destination.writestr(copied, content)
+            with tempfile.TemporaryDirectory(
+                prefix=f".{output.name}.", dir=output.parent
+            ) as temporary_directory:
+                staged_output = Path(temporary_directory) / output.name
+                with zipfile.ZipFile(
+                    staged_output, mode="w", compression=zipfile.ZIP_DEFLATED
+                ) as destination:
+                    add_zip_launcher(destination, launcher)
+                    if (
+                        "mercury" not in normalized
+                        and "mercury/" not in normalized
+                    ):
+                        destination.writestr(directory_zip_info("mercury/"), b"")
+                    for member, name in zip(members, normalized):
+                        copied = copy.copy(member)
+                        copied.filename = name
+                        if member.is_dir():
+                            copied.compress_type = zipfile.ZIP_STORED
+                            destination.writestr(copied, b"")
+                            continue
+                        copied.compress_type = member.compress_type
+                        with source.open(member) as source_stream, destination.open(
+                            copied, mode="w", force_zip64=True
+                        ) as destination_stream:
+                            shutil.copyfileobj(
+                                source_stream,
+                                destination_stream,
+                                length=1024 * 1024,
+                            )
+                os.replace(staged_output, output)
     except (
         OSError,
         RuntimeError,
-        ValueError,
         zipfile.BadZipFile,
     ) as error:
-        if isinstance(error, ValueError):
-            raise
         raise ValueError(
             f"Invalid Windows package archive: {archive}: {error}"
         ) from error
@@ -414,10 +419,7 @@ def main() -> int:
 
     try:
         create_portable(archive, output)
-    except ValueError as error:
-        print(error, file=sys.stderr)
-        return 1
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
     except KeyboardInterrupt:

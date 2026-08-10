@@ -16,7 +16,6 @@ from release_config import FIREFOX_RELEASE
 
 
 FIREFOX_REPOSITORY = "https://github.com/mozilla-firefox/firefox.git"
-DEFAULT_FIREFOX_REVISION = FIREFOX_RELEASE
 ALLOWED_ORIGINS = {
     "https://github.com/mozilla-firefox/firefox",
     FIREFOX_REPOSITORY,
@@ -40,6 +39,8 @@ class UsageError(Exception):
 
 
 def target_platform(arguments: List[str]) -> str:
+    if len(arguments) > 1:
+        raise UsageError
     if arguments:
         argument = arguments[0]
         if argument in {"--linux", "--mac", "--win"}:
@@ -71,9 +72,7 @@ def native_path(path: str) -> Path:
 
 
 def run(command: List[str], *, cwd: Optional[Path] = None) -> None:
-    result = subprocess.run(command, cwd=cwd, check=False)
-    if result.returncode:
-        raise subprocess.CalledProcessError(result.returncode, command)
+    subprocess.run(command, cwd=cwd, check=True)
 
 
 def git_output(arguments: List[str], *, stderr=None) -> str:
@@ -97,7 +96,7 @@ def mach_command(arguments: List[str]) -> List[str]:
 def bootstrap(platform: str) -> None:
     source_value = os.environ.get("MOZ_SRC_DIR") or default_source_directory(platform)
     source_directory = native_path(source_value)
-    revision = os.environ.get("FIREFOX_REVISION") or DEFAULT_FIREFOX_REVISION
+    revision = os.environ.get("FIREFOX_REVISION") or FIREFOX_RELEASE
     os.environ["MOZ_SRC_DIR"] = source_value
 
     if shutil.which("git") is None:
@@ -140,7 +139,7 @@ def bootstrap(platform: str) -> None:
 
 def main() -> int:
     arguments = sys.argv[1:]
-    if arguments and arguments[0] in {"--help", "-h"}:
+    if arguments in (["--help"], ["-h"]):
         print(HELP, end="")
         return 0
     try:
